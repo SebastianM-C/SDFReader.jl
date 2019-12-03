@@ -3,6 +3,10 @@ uuid = "bd0b56a1-724b-4db5-9cfb-6781c02e0e49"
 authors = ["Sebastian Micluța-Câmpeanu <m.c.sebastian95@gmail.com>"]
 version = "0.1.0"
 
+[deps]
+PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
+Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
+
 [compat]
 julia = "1"
 
