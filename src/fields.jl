@@ -5,16 +5,16 @@ struct Field{T,N,A}
     grid::NTuple{N, A}
 end
 
-function Field(data, grid::NTuple{N,A}, units::Units{U,D}) where {T,N,A,D,U}
+function Field(data, grid, units)
     Field(data*units, grid)
 end
 
-function Field(x, y, grid::NTuple{N,A}, units::Units{U,D}) where {T,N,A,D,U}
+function Field(x::AbstractArray{T,N}, y::AbstractArray{T,N}, grid, units) where {T,N}
     data = Vec{2,T}.(x, y)
     Field(data*units, grid)
 end
 
-function Field(x, y, z, grid::NTuple{N,A}, units::Units{U,D}) where {T,N,A,D,U}
+function Field(x::AbstractArray{T,N}, y::AbstractArray{T,N}, z::AbstractArray{T,N}, grid, units) where {T,N}
     data = Vec{3,T}.(x, y, z)
     Field(data*units, grid)
 end
