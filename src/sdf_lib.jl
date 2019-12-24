@@ -1,3 +1,4 @@
+module SDF
 
 const ID_LENGTH     = 32
 const ENDIANNESS    = 16911887
@@ -59,7 +60,7 @@ struct Header
   summary_size::Int32
   nblocks::Int32
   block_header_length::Int32
-  sym_step::Int32 
+  sym_step::Int32
   sym_time::Float64
   jobid1::Int32
   jobid2::Int32
@@ -73,7 +74,7 @@ struct BlockHeader
   id::String
   data_length::Int64
   block_type::Int32
-  d_type::DataType
+  d_type::Union{Type{Nothing}, Type{Float32}, Type{Float64}, Type{Int32}, Type{Int64}}
   n_dims::Int32
   name::String
 end
@@ -109,7 +110,7 @@ end
 
 struct PlainMeshBlockHeader{N} <: AbstractBlockHeader
   base_header::BlockHeader
-  
+
   mults::Array{Float64, N}
   labels::Array{String, N}
   units::Array{String, N}
@@ -201,9 +202,10 @@ end
 
 function read_data!(f, block, ::Val{BLOCKTYPE_PLAIN_VARIABLE})
   dims = prod(block.npts)
-  seek(f, block.data_location)
+  seek(f, block.base_header.data_location)
 
-  reinterpret(block.d_type, read(f, dims*sizeof(block.d_type)))
+  raw_data = read(f, dims*sizeof(block.base_header.d_type))
+  reinterpret(block.base_header.d_type, raw_data)
 end
 
 function read_header!(f, block, ::Val{BLOCKTYPE_POINT_VARIABLE})
@@ -222,7 +224,7 @@ end
 function read_mesh_common!(f, n)
   labels  = Array{String}(undef, n)
   units   = Array{String}(undef, n)
-  
+
   mults = reinterpret(Float64, read(f, n*sizeof(Float64)))
 
   for i = 1:n
@@ -341,6 +343,4 @@ function fetch_blocks(filename)
   end
 end
 
-function main()
-  fetch_blocks(ARGS[1])
-end
+end  # module SDF
