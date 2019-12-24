@@ -19,6 +19,7 @@ end
 include("utils.jl")
 include("fields.jl")
 include("particles.jl")
+include("sdf.jl")
 
 function build_vector(v::Vararg{T,N}) where {N,T}
     Array(Point{N}.(v...))
