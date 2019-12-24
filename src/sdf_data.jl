@@ -15,7 +15,7 @@ function read_data!(f, block, ::Val{BLOCKTYPE_PLAIN_VARIABLE})
     seek(f, block.base_header.data_location)
 
     raw_data = read(f, dims * sizeof(block.base_header.d_type))
-    reinterpret(block.base_header.d_type, raw_data)
+    reshape(Array(reinterpret(block.base_header.d_type, raw_data)), block.npts)
 end
 
 function read_data!(f, block, ::Val{BLOCKTYPE_POINT_VARIABLE})
