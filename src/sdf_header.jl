@@ -50,7 +50,7 @@ struct PlainVariableBlockHeader{N} <: AbstractBlockHeader
     mult::Float64
     units::String
     mesh_id::String
-    npts::Array{Int32,N}
+    npts::NTuple{N,Int32}
     stagger::Int32
 end
 
@@ -139,7 +139,7 @@ function read_header!(f, block, ::Val{BLOCKTYPE_PLAIN_VARIABLE})
     npts = reinterpret(Int32, read(f, block.n_dims * sizeof(Int32)))
     stagger = read(f, Int32)
 
-    PlainVariableBlockHeader(block, mult, units, mesh_id, Array(npts), stagger)
+    PlainVariableBlockHeader(block, mult, units, mesh_id, Tuple(npts), stagger)
 end
 
 function read_header!(f, block, ::Val{BLOCKTYPE_POINT_VARIABLE})

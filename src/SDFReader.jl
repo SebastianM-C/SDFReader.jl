@@ -1,6 +1,6 @@
 module SDFReader
 
-export filereader, Field, particle_variable, build_vector, electric_field
+export filereader, Field, particle_variable, build_vector, electric_field, SDF
 
 using PyCall
 using Unitful: Unitful, Units, @u_str

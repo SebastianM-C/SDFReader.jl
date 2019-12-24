@@ -1,6 +1,6 @@
 module SDF
 
-export fetch_blocks
+export fetch_blocks, read_data!
 
 const ID_LENGTH = 32
 const ENDIANNESS = 16911887
