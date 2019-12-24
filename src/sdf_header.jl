@@ -134,9 +134,10 @@ function read_header!(f, block, ::Val{BLOCKTYPE_CONSTANT})
 end
 
 function read_header!(f, block, ::Val{BLOCKTYPE_PLAIN_VARIABLE})
-    mult, units, mesh_id = read_variable_common!(f)
+    npts = Array{Int32, 1}(undef, block.n_dims)
 
-    npts = reinterpret(Int32, read(f, block.n_dims * sizeof(Int32)))
+    mult, units, mesh_id = read_variable_common!(f)
+    read!(f, npts)
     stagger = read(f, Int32)
 
     PlainVariableBlockHeader(block, mult, units, mesh_id, Tuple(npts), stagger)
@@ -150,11 +151,13 @@ function read_header!(f, block, ::Val{BLOCKTYPE_POINT_VARIABLE})
 end
 
 function read_header!(f, block, ::Val{BLOCKTYPE_PLAIN_MESH})
+    npts = Array{Int32, 1}(undef, block.n_dims)
+
     mults, labels, units, geometry, minval, maxval = read_mesh_common!(
         f,
         block.n_dims,
     )
-    npts = reinterpret(Int32, read(f, block.n_dims * sizeof(Int32)))
+    read!(f, npts)
 
     PlainMeshBlockHeader(
         block,
@@ -215,10 +218,13 @@ function read_variable_common!(f)
 end
 
 function read_mesh_common!(f, n)
+    mults = Array{Float64, 1}(undef, n)
     labels = Array{String}(undef, n)
     units = Array{String}(undef, n)
+    minval = Array{Float64, 1}(undef, n)
+    maxval = Array{Float64, 1}(undef, n)
 
-    mults = reinterpret(Float64, read(f, n * sizeof(Float64)))
+    read!(f, mults)
 
     for i = 1:n
         labels[i] = String(read(f, ID_LENGTH))
@@ -227,8 +233,8 @@ function read_mesh_common!(f, n)
         units[i] = String(read(f, ID_LENGTH))
     end
     geometry = read(f, Int32)
-    minval = reinterpret(Float64, read(f, n * sizeof(Float64)))
-    maxval = reinterpret(Float64, read(f, n * sizeof(Float64)))
+    read!(f, minval)
+    read!(f, maxval)
 
     (mults, labels, units, geometry, minval, maxval)
 end
