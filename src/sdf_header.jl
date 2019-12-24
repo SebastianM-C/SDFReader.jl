@@ -205,3 +205,30 @@ end
 function read_header!(f, block, ::Val{BLOCKTYPE_CPU_SPLIT})
     CPUSplitBlockHeader(block)
 end
+
+function read_variable_common!(f)
+    mult = read(f, Float64)
+    units = String(read(f, ID_LENGTH))
+    mesh_id = String(read(f, ID_LENGTH))
+
+    (mult, units, mesh_id)
+end
+
+function read_mesh_common!(f, n)
+    labels = Array{String}(undef, n)
+    units = Array{String}(undef, n)
+
+    mults = reinterpret(Float64, read(f, n * sizeof(Float64)))
+
+    for i = 1:n
+        labels[i] = String(read(f, ID_LENGTH))
+    end
+    for i = 1:n
+        units[i] = String(read(f, ID_LENGTH))
+    end
+    geometry = read(f, Int32)
+    minval = reinterpret(Float64, read(f, n * sizeof(Float64)))
+    maxval = reinterpret(Float64, read(f, n * sizeof(Float64)))
+
+    (mults, labels, units, geometry, minval, maxval)
+end
