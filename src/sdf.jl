@@ -40,30 +40,30 @@ const BLOCKTYPE_STATION_DERIVED = Int32(27)
 const BLOCKTYPE_DATABLOCK = Int32(28)
 const BLOCKTYPE_NAMEVALUE = Int32(29)
 
-const DATATYPE_NULL = 0
-const DATATYPE_INTEGER4 = 1
-const DATATYPE_INTEGER8 = 2
-const DATATYPE_REAL4 = 3
-const DATATYPE_REAL8 = 4
-const DATATYPE_REAL16 = 5
-const DATATYPE_CHARACTER = 6
-const DATATYPE_LOGICAL = 7
-const DATATYPE_OTHER = 8
+const DATATYPE_NULL = Int32(0)
+const DATATYPE_INTEGER4 = Int32(1)
+const DATATYPE_INTEGER8 = Int32(2)
+const DATATYPE_REAL4 = Int32(3)
+const DATATYPE_REAL8 = Int32(4)
+const DATATYPE_REAL16 = Int32(5)
+const DATATYPE_CHARACTER = Int32(6)
+const DATATYPE_LOGICAL = Int32(7)
+const DATATYPE_OTHER = Int32(8)
 
 include("sdf_header.jl")
 include("sdf_data.jl")
 
-function type_from(data_type)
-    if data_type == DATATYPE_REAL4
-        Float32
-    elseif data_type == DATATYPE_REAL8
-        Float64
-    elseif data_type == DATATYPE_INTEGER4
-        Int32
-    elseif data_type == DATATYPE_INTEGER8
-        Int64
+@generated function type_from(data_type::Val{N}) where N
+    if N === DATATYPE_REAL4
+        :(Float32)
+    elseif N === DATATYPE_REAL8
+        :(Float64)
+    elseif N === DATATYPE_INTEGER4
+        :(Int32)
+    elseif N === DATATYPE_INTEGER8
+        :(Int64)
     else
-        Nothing
+        :(Nothing)
     end
 end
 
@@ -85,16 +85,14 @@ function fetch_blocks(filename)
             name = String(read(f, r.string_length))
 
             seek(f, block_start + r.block_header_length)
-            d_type = type_from(data_type)
+            d_type = type_from(Val(data_type))
 
-            block = BlockHeader(
+            block = BlockHeader{d_type, Int(n_dims)}(
                 next_block_location,
                 data_location,
                 id,
                 data_length,
                 block_type,
-                d_type,
-                n_dims,
                 name,
             )
             blocks[i] = read_header!(f, block, Val(block_type))
