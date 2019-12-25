@@ -1,0 +1,97 @@
+begin:control
+  nx = 10
+  ny = 10
+  nz = 10
+
+  # Final time of simulation
+  t_end = 10 * femto
+
+  # Size of domain
+  x_min = -1 * micron
+  x_max = -x_min
+  y_min = x_min
+  y_max = x_max
+  z_min = x_min
+  z_max = -z_min
+
+  stdout_frequency = 20
+end:control
+
+
+begin:boundaries
+  bc_x_min = simple_laser
+  bc_x_max = open
+  bc_y_min = periodic
+  bc_y_max = periodic
+  bc_z_min = periodic
+  bc_z_max = periodic
+end:boundaries
+
+
+begin:constant
+  lambda0 = 800 * nano
+  omega = 2 * pi * c / lambda0
+  T_l = lambda0 / c
+
+  a0 = 70
+  r0 = 7 * lambda0 # Beam waist size
+  r = sqrt(y^2 + z^2)
+  theta = atan2(y,z)
+
+  n = 2e-2
+end:constant
+
+
+begin:laser
+  boundary = x_min
+  lambda = lambda0
+  amp = a0 / lambda0 * 2 * pi * me*c^2/qe # E0
+  phase = 0
+  profile = exp(-r^2/r0^2)
+  t_profile = gauss(time, 0.0, 20*T_l)
+end:laser
+
+
+begin:species
+   name = electron
+   charge = -1.0
+   mass = 1.0
+   number_density = n
+   temperature_ev = 1e3
+   nparticles_per_cell = 1
+end:species
+
+
+begin:species
+   name = proton
+   charge = 1.0
+   mass = 1836.2
+   number_density = number_density(electron)
+   temperature_ev = 30
+   nparticles_per_cell = 1
+end:species
+
+
+begin:output
+  name = normal
+
+  # Number of timesteps between output dumps
+  dt_snapshot = 5 * femto
+
+  # Properties on grid
+  grid = always
+  ex = always
+  ey = always
+  ez = always
+  poynting_flux = always
+
+  # Properties at particle positions
+  particle_grid = always
+  px = always
+  py = always
+  pz = always
+
+  number_density = always + species
+  average_particle_energy = always + species
+  particle_energy_flux = always + species
+end:output
