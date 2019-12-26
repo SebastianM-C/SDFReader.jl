@@ -23,21 +23,29 @@ end
 function Base.read!(f, block::PlainMeshBlockHeader{T,D}) where {T,D}
     offset = block.base_header.data_location
 
-    ntuple(Val(D)) do i
-        raw_data = Array{T, 1}(undef, block.npts[i])
+    raw_data = ntuple(Val(D)) do i
+        Array{T, 1}(undef, block.npts[i])
+    end
+    @inbounds for i in eachindex(raw_data)
         seek(f, offset)
         offset += sizeof(T) * block.npts[i]
-        read!(f, raw_data)
+        read!(f, raw_data[i])
     end
+
+    return raw_data
 end
 
 function Base.read!(f, block::PointMeshBlockHeader{T,D}) where {T,D}
     offset = block.base_header.data_location
 
-    ntuple(Val(D)) do _
-        raw_data = Array{T, 1}(undef, block.npart)
+    raw_data = ntuple(Val(D)) do _
+        Array{T, 1}(undef, block.npart)
+    end
+    @inbounds for i in eachindex(raw_data)
         seek(f, offset)
         offset += sizeof(T) * block.npart
-        read!(f, raw_data)
+        read!(f, raw_data[i])
     end
+
+    return raw_data
 end
