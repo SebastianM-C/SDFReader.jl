@@ -84,11 +84,11 @@ struct CPUInfoBlockHeader{T,D} <: AbstractBlockHeader{T,D}
 end
 
 function header!(f)
-    sdf_magic = String(read(f, 4))
+    sdf_magic = simple_str(read(f, 4))
     endianness = read(f, Int32)
     version = read(f, Int32)
     revision = read(f, Int32)
-    code_name = (String(read(f, ID_LENGTH)))
+    code_name = simple_str(read(f, ID_LENGTH))
     first_block_location = read(f, Int64)
     summary_location = read(f, Int64)
     summary_size = read(f, Int32)
@@ -185,10 +185,10 @@ end
 function read_header!(f, block, ::Val{BLOCKTYPE_RUN_INFO})
     code_version = read(f, Int32)
     code_revision = read(f, Int32)
-    commit_id = String(read(f, ID_LENGTH))
-    sha1sum = String(read(f, ID_LENGTH))
-    compile_machine = String(read(f, ID_LENGTH))
-    compile_flags = String(read(f, ID_LENGTH))
+    commit_id = simple_str(read(f, ID_LENGTH))
+    sha1sum = simple_str(read(f, ID_LENGTH))
+    compile_machine = simple_str(read(f, ID_LENGTH))
+    compile_flags = simple_str(read(f, ID_LENGTH))
     defines = read(f, Int64)
     compile_date = read(f, Int32)
     run_date = read(f, Int32)
@@ -203,8 +203,8 @@ end
 
 function read_variable_common!(f)
     mult = read(f, Float64)
-    units = String(read(f, ID_LENGTH))
-    mesh_id = String(read(f, ID_LENGTH))
+    units = simple_str(read(f, ID_LENGTH))
+    mesh_id = simple_str(read(f, ID_LENGTH))
 
     (mult, units, mesh_id)
 end
@@ -219,10 +219,10 @@ function read_mesh_common!(f, n)
     read!(f, mults)
 
     for i = 1:n
-        labels[i] = String(read(f, ID_LENGTH))
+        labels[i] = simple_str(read(f, ID_LENGTH))
     end
     for i = 1:n
-        units[i] = String(read(f, ID_LENGTH))
+        units[i] = simple_str(read(f, ID_LENGTH))
     end
     geometry = read(f, Int32)
     read!(f, minval)
@@ -230,3 +230,5 @@ function read_mesh_common!(f, n)
 
     (mults, labels, units, geometry, minval, maxval)
 end
+
+simple_str(s) = replace(String(rstrip(String(s))), "\0" => "")
