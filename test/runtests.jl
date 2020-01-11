@@ -1,6 +1,8 @@
 using SDFReader
 using Test
+using Serialization
 
 @testset "SDFReader.jl" begin
-    # Write your own tests here.
+    data, grids, units = deserialize("0002.jl")
+    
 end
