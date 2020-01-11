@@ -1,6 +1,8 @@
 using LinearAlgebra
 
-struct Field{T,N,A}
+abstract type AbstractQuantity end
+
+struct Field{T,N,A} <: AbstractQuantity
     data::Array{T, N}
     grid::NTuple{N, A}
 end
@@ -19,11 +21,10 @@ function Field(x::AbstractArray{T,N}, y::AbstractArray{T,N}, z::AbstractArray{T,
     Field(data*units, grid)
 end
 
-function Field(fr::PyObject, key::Symbol)
-    py_obj = getproperty(fr, key)
-    data = convert_it(py_obj.data)
+function Field(fn::AbstractString, block::AbstractBlockHeader)
+    data = read!(fn, block)
     data_size = size(data)
-    units = get_units(py_obj.units)
+    units = get_units(block.units)
     grid = convert_it.(py_obj.grid.data)
     if data_size == length.(grid)
         Field(data, grid, units)
@@ -34,13 +35,13 @@ function Field(fr::PyObject, key::Symbol)
 end
 
 for f in (:+, :-, :*, :/)
-    @eval function (Base.$f)(f1::Field, f2::Field)
+    @eval function (Base.$f)(f1::AbstractQuantity, f2::AbstractQuantity)
         Field(($f).(f1.data, f2.data), f1.grid)
     end
 end
 
-function LinearAlgebra.cross(f1::Field, f2::Field)
+function LinearAlgebra.cross(f1::AbstractQuantity, f2::AbstractQuantity)
     Field(cross.(f1.data, f2.data), f1.grid)
 end
 
-LinearAlgebra.norm(field::Field) = Field(norm.(field.data), field.grid)
+LinearAlgebra.norm(field::AbstractQuantity) = Field(norm.(field.data), field.grid)

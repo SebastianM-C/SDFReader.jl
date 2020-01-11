@@ -2,24 +2,17 @@ module SDFReader
 
 export filereader, Field, particle_variable, build_vector, electric_field, SDF
 
-using PyCall
 using Unitful: Unitful, Units, @u_str
 using GeometryTypes
 # using RecursiveArrayTools
 # needs broadcast for VectorOfArray
 
-const sdf = PyNULL()
-const sh = PyNULL()
+include("sdf.jl")
+using .SDF
 
-function __init__()
-    copy!(sdf, pyimport("sdf"))
-    copy!(sh, pyimport("sdf_helper"))
-end
-
-include("utils.jl")
 include("fields.jl")
 include("particles.jl")
-include("sdf.jl")
+include("utils.jl")
 
 function build_vector(v::Vararg{T,N}) where {N,T}
     Array(Point{N}.(v...))
@@ -33,6 +26,10 @@ The values can be optionally converted to 32 bits with the `convert` argument.
 """
 function filereader(path; convert=false)
     sdf.read(path, convert=convert)
+end
+
+function simulation_files(path)
+
 end
 
 function electric_field(fr)
