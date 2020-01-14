@@ -11,7 +11,3 @@ header, data, grids, units = open(deserialize, "0002.jl")
         @test getproperty(h, p) == getindex(header, string(p))
     end
 end
-
-@testset "BlockHeader" begin
-
-end
