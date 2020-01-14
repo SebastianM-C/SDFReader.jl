@@ -69,34 +69,30 @@ end
 
 function fetch_blocks(filename)
     open(filename, "r") do f
-        r = header!(f)
-        blocks = Array{AbstractBlockHeader}(undef, r.nblocks)
+        h = header(f)
+        blocks = Array{AbstractBlockHeader}(undef, h.nblocks)
 
-        block_start = r.first_block_location
-        for i = 1:r.nblocks
-            seek(f, block_start)
-            next_block_location = read(f, Int64)
-            data_location = read(f, Int64)
-            id = simple_str(read(f, ID_LENGTH))
-            data_length = read(f, Int64)
-            block_type = read(f, Int32)
-            data_type = read(f, Int32)
-            n_dims = read(f, Int32)
-            name = simple_str(read(f, r.string_length))
+        block_start = h.first_block_location
+        for i = 1:h.nblocks
+            block = BlockHeader(f, block_start, h.string_length, h.block_header_length)
+            blocks[i] = read(f, block)
+            block_start = block.next_block_location
+        end
 
-            seek(f, block_start + r.block_header_length)
-            d_type = type_from(Val(data_type))
+        blocks
+    end
+end
 
-            block = BlockHeader{d_type, Int(n_dims)}(
-                next_block_location,
-                data_location,
-                id,
-                data_length,
-                block_type,
-                name,
-            )
-            blocks[i] = read_header!(f, block, Val(block_type))
-            block_start = next_block_location
+function file_summary(filename)
+    open(filename, "r") do f
+        h = header(f)
+        blocks = Dict{String,AbstractBlockHeader}()
+
+        block_start = h.summary_location
+        for i = 1:h.nblocks
+            block = BlockHeader(f, block_start, h.string_length, h.block_header_length)
+            blocks[block.id] = read(f, block)
+            block_start = block.next_block_location
         end
 
         blocks

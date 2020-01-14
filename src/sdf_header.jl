@@ -1,29 +1,51 @@
 struct Header
     sdf_magic::String
     endianness::Int32
-    version::Int32
-    revision::Int32
+    file_version::Int32
+    file_revision::Int32
     code_name::String
     first_block_location::Int64
     summary_location::Int64
     summary_size::Int32
     nblocks::Int32
     block_header_length::Int32
-    sym_step::Int32
-    sym_time::Float64
+    step::Int32
+    time::Float64
     jobid1::Int32
     jobid2::Int32
     string_length::Int32
     code_io_version::Int32
 end
 
-struct BlockHeader{T,D}
+struct BlockHeader{T,D,B}
     next_block_location::Int64
     data_location::Int64
     id::String
     data_length::Int64
-    block_type::Int32
     name::String
+end
+
+function BlockHeader(f::IOStream, start, string_length, header_length)
+    seek(f, start)
+    next_block_location = read(f, Int64)
+    data_location = read(f, Int64)
+    id = simple_str(read(f, ID_LENGTH))
+    data_length = read(f, Int64)
+    block_type = read(f, Int32)
+    data_type = read(f, Int32)
+    n_dims = read(f, Int32)
+    name = simple_str(read(f, string_length))
+
+    d_type = type_from(Val(data_type))
+    seek(f, start + header_length)
+
+    BlockHeader{d_type, Int(n_dims), block_type}(
+        next_block_location,
+        data_location,
+        id,
+        data_length,
+        name,
+    )
 end
 
 abstract type AbstractBlockHeader{T,D} end
@@ -83,19 +105,19 @@ struct CPUInfoBlockHeader{T,D} <: AbstractBlockHeader{T,D}
     base_header::BlockHeader{T,D}
 end
 
-function header!(f)
+function header(f::IOStream)
     sdf_magic = simple_str(read(f, 4))
     endianness = read(f, Int32)
-    version = read(f, Int32)
-    revision = read(f, Int32)
+    file_version = read(f, Int32)
+    file_revision = read(f, Int32)
     code_name = simple_str(read(f, ID_LENGTH))
     first_block_location = read(f, Int64)
     summary_location = read(f, Int64)
     summary_size = read(f, Int32)
     nblocks = read(f, Int32)
     block_header_length = read(f, Int32)
-    sym_step = read(f, Int32)
-    sym_time = read(f, Float64)
+    step = read(f, Int32)
+    time = read(f, Float64)
     jobid1 = read(f, Int32)
     jobid2 = read(f, Int32)
     string_length = read(f, Int32)
@@ -104,16 +126,16 @@ function header!(f)
     Header(
         sdf_magic,
         endianness,
-        version,
-        revision,
+        file_version,
+        file_revision,
         code_name,
         first_block_location,
         summary_location,
         summary_size,
         nblocks,
         block_header_length,
-        sym_step,
-        sym_time,
+        step,
+        time,
         jobid1,
         jobid2,
         string_length,
@@ -121,11 +143,13 @@ function header!(f)
     )
 end
 
-function read_header!(f, block, ::Val{BLOCKTYPE_CONSTANT})
+header(filename::AbstractString) = open(header, filename)
+
+function Base.read(f, block::BlockHeader{T,D,BLOCKTYPE_CONSTANT}) where {T,D}
     ConstantBlockHeader(block)
 end
 
-function read_header!(f, block::BlockHeader{T,D}, ::Val{BLOCKTYPE_PLAIN_VARIABLE}) where {T,D}
+function Base.read(f, block::BlockHeader{T,D,BLOCKTYPE_PLAIN_VARIABLE}) where {T,D}
     npts = Array{Int32, 1}(undef, D)
 
     mult, units, mesh_id = read_variable_common!(f)
@@ -135,14 +159,14 @@ function read_header!(f, block::BlockHeader{T,D}, ::Val{BLOCKTYPE_PLAIN_VARIABLE
     PlainVariableBlockHeader(block, mult, units, mesh_id, Tuple(npts), stagger)
 end
 
-function read_header!(f, block, ::Val{BLOCKTYPE_POINT_VARIABLE})
+function Base.read(f, block::BlockHeader{T,D,BLOCKTYPE_POINT_VARIABLE}) where {T,D}
     mult, units, mesh_id = read_variable_common!(f)
     npart = read(f, Int64)
 
     PointVariableBlockHeader(block, mult, units, mesh_id, npart)
 end
 
-function read_header!(f, block::BlockHeader{T,D}, ::Val{BLOCKTYPE_PLAIN_MESH}) where {T,D}
+function Base.read(f, block::BlockHeader{T,D,BLOCKTYPE_PLAIN_MESH}) where {T,D}
     npts = Array{Int32, 1}(undef, D)
 
     mults, labels, units, geometry, minval, maxval = read_mesh_common!(
@@ -163,7 +187,7 @@ function read_header!(f, block::BlockHeader{T,D}, ::Val{BLOCKTYPE_PLAIN_MESH}) w
     )
 end
 
-function read_header!(f, block::BlockHeader{T,D}, ::Val{BLOCKTYPE_POINT_MESH}) where {T,D}
+function Base.read(f, block::BlockHeader{T,D,BLOCKTYPE_POINT_MESH}) where {T,D}
     mults, labels, units, geometry, minval, maxval = read_mesh_common!(
         f,
         D,
@@ -182,7 +206,7 @@ function read_header!(f, block::BlockHeader{T,D}, ::Val{BLOCKTYPE_POINT_MESH}) w
     )
 end
 
-function read_header!(f, block, ::Val{BLOCKTYPE_RUN_INFO})
+function Base.read(f, block::BlockHeader{T,D,BLOCKTYPE_RUN_INFO}) where {T,D}
     code_version = read(f, Int32)
     code_revision = read(f, Int32)
     commit_id = simple_str(read(f, ID_LENGTH))
@@ -197,7 +221,7 @@ function read_header!(f, block, ::Val{BLOCKTYPE_RUN_INFO})
     CPUInfoBlockHeader(block)
 end
 
-function read_header!(f, block, ::Val{BLOCKTYPE_CPU_SPLIT})
+function Base.read(f, block::BlockHeader{T,D,BLOCKTYPE_CPU_SPLIT}) where {T,D}
     CPUSplitBlockHeader(block)
 end
 
