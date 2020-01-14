@@ -1,6 +1,6 @@
 module SDF
 
-export fetch_blocks, AbstractBlockHeader
+export file_summary, AbstractBlockHeader
 
 const ID_LENGTH = 32
 const ENDIANNESS = 16911887

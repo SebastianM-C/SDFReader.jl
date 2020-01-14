@@ -17,7 +17,10 @@ struct Header
     code_io_version::Int32
 end
 
-struct BlockHeader{T,D,B}
+# T Data type
+# N Dimensionality of data
+# B Dispatch puropeses (in read for choosing block type)
+struct BlockHeader{T,N,B}
     next_block_location::Int64
     data_location::Int64
     id::String
@@ -48,18 +51,18 @@ function BlockHeader(f::IOStream, start, string_length, header_length)
     )
 end
 
-abstract type AbstractBlockHeader{T,D} end
+abstract type AbstractBlockHeader{T,N} end
 
-struct ConstantBlockHeader{T,D} <: AbstractBlockHeader{T,D}
-    base_header::BlockHeader{T,D}
+struct ConstantBlockHeader{T,N} <: AbstractBlockHeader{T,N}
+    base_header::BlockHeader{T,N}
 end
 
-struct CPUSplitBlockHeader{T,D} <: AbstractBlockHeader{T,D}
-    base_header::BlockHeader{T,D}
+struct CPUSplitBlockHeader{T,N} <: AbstractBlockHeader{T,N}
+    base_header::BlockHeader{T,N}
 end
 
-struct PlainVariableBlockHeader{T,D,N} <: AbstractBlockHeader{T,D}
-    base_header::BlockHeader{T,D}
+struct PlainVariableBlockHeader{T,N} <: AbstractBlockHeader{T,N}
+    base_header::BlockHeader{T,N}
 
     mult::Float64
     units::String
@@ -68,8 +71,8 @@ struct PlainVariableBlockHeader{T,D,N} <: AbstractBlockHeader{T,D}
     stagger::Int32
 end
 
-struct PointVariableBlockHeader{T,D} <: AbstractBlockHeader{T,D}
-    base_header::BlockHeader{T,D}
+struct PointVariableBlockHeader{T,N} <: AbstractBlockHeader{T,N}
+    base_header::BlockHeader{T,N}
 
     mult::Float64
     units::String
@@ -77,32 +80,32 @@ struct PointVariableBlockHeader{T,D} <: AbstractBlockHeader{T,D}
     npart::Int64
 end
 
-struct PlainMeshBlockHeader{T,D,N} <: AbstractBlockHeader{T,D}
-    base_header::BlockHeader{T,D}
+struct PlainMeshBlockHeader{T,N} <: AbstractBlockHeader{T,N}
+    base_header::BlockHeader{T}
 
-    mults::Array{Float64,N}
-    labels::Array{String,N}
-    units::Array{String,N}
+    mults::Array{Float64,1}
+    labels::NTuple{N,String}
+    units::NTuple{N,String}
     geometry::Int32
-    minval::Array{Float64,N}
-    maxval::Array{Float64,N}
-    npts::Array{Int32,N}
+    minval::Array{Float64,1}
+    maxval::Array{Float64,1}
+    npts::Array{Int32,1}
 end
 
-struct PointMeshBlockHeader{T,D,N} <: AbstractBlockHeader{T,D}
-    base_header::BlockHeader{T,D}
+struct PointMeshBlockHeader{T,N} <: AbstractBlockHeader{T,N}
+    base_header::BlockHeader{T,N}
 
-    mults::Array{Float64,N}
-    labels::Array{String,N}
-    units::Array{String,N}
+    mults::Array{Float64,1}
+    labels::NTuple{N,String}
+    units::NTuple{N,String}
     geometry::Int32
-    minval::Array{Float64,N}
-    maxval::Array{Float64,N}
+    minval::Array{Float64,1}
+    maxval::Array{Float64,1}
     npart::Int64
 end
 
-struct CPUInfoBlockHeader{T,D} <: AbstractBlockHeader{T,D}
-    base_header::BlockHeader{T,D}
+struct CPUInfoBlockHeader{T,N} <: AbstractBlockHeader{T,N}
+    base_header::BlockHeader{T,N}
 end
 
 function header(f::IOStream)
@@ -166,42 +169,36 @@ function Base.read(f, block::BlockHeader{T,D,BLOCKTYPE_POINT_VARIABLE}) where {T
     PointVariableBlockHeader(block, mult, units, mesh_id, npart)
 end
 
-function Base.read(f, block::BlockHeader{T,D,BLOCKTYPE_PLAIN_MESH}) where {T,D}
-    npts = Array{Int32, 1}(undef, D)
+function Base.read(f, block::BlockHeader{T,N,BLOCKTYPE_PLAIN_MESH}) where {T,N}
+    npts = Array{Int32, 1}(undef, N)
 
-    mults, labels, units, geometry, minval, maxval = read_mesh_common!(
-        f,
-        D,
-    )
+    mults, labels, units, geometry, minval, maxval = read_mesh_common!(f,N)
     read!(f, npts)
 
     PlainMeshBlockHeader(
         block,
-        Array(mults),
+        mults,
         labels,
         units,
         geometry,
-        Array(minval),
-        Array(maxval),
-        Array(npts),
+        minval,
+        maxval,
+        npts,
     )
 end
 
-function Base.read(f, block::BlockHeader{T,D,BLOCKTYPE_POINT_MESH}) where {T,D}
-    mults, labels, units, geometry, minval, maxval = read_mesh_common!(
-        f,
-        D,
-    )
+function Base.read(f, block::BlockHeader{T,N,BLOCKTYPE_POINT_MESH}) where {T,N}
+    mults, labels, units, geometry, minval, maxval = read_mesh_common!(f,N)
     npart = read(f, Int64)
 
     PointMeshBlockHeader(
         block,
-        Array(mults),
+        mults,
         labels,
         units,
         geometry,
-        Array(minval),
-        Array(maxval),
+        minval,
+        maxval,
         npart,
     )
 end
@@ -235,18 +232,16 @@ end
 
 function read_mesh_common!(f, n)
     mults = Array{Float64, 1}(undef, n)
-    labels = Array{String}(undef, n)
-    units = Array{String}(undef, n)
     minval = Array{Float64, 1}(undef, n)
     maxval = Array{Float64, 1}(undef, n)
 
     read!(f, mults)
 
-    for i = 1:n
-        labels[i] = simple_str(read(f, ID_LENGTH))
+    labels = ntuple(n) do i
+        simple_str(read(f, ID_LENGTH))
     end
-    for i = 1:n
-        units[i] = simple_str(read(f, ID_LENGTH))
+    units = ntuple(n) do i
+        simple_str(read(f, ID_LENGTH))
     end
     geometry = read(f, Int32)
     read!(f, minval)
