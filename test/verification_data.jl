@@ -52,24 +52,27 @@ end
 
 function create_dicts(fn)
     fr = filereader(fn)
+    header = fr.Header
     variables = filter!(k->!startswith(k, "__"), String.(keys(fr)))
+    filter!(k->k≠"Header", variables)
     data = Dict{String, Any}()
     grids = Dict{String, NTuple{3,Vector}}()
     units = Dict{String, Union{String,Tuple{String},NTuple{3,String}}}()
     for v in variables
         sdf_var = getproperty(fr, v)
+        id = sdf_var.id
         if hasproperty(sdf_var, :data)
-            data[v] = convert_variable(sdf_var.data)
+            data[id] = convert_variable(sdf_var.data)
             if hasproperty(sdf_var, :grid)
-                grids[v] = get_grid(sdf_var, size(data[v]))
+                grids[id] = get_grid(sdf_var, size(data[id]))
             end
         end
         if hasproperty(sdf_var, :units)
-            units[v] = sdf_var.units
+            units[id] = sdf_var.units
         end
     end
 
-    return data, grids, units
+    return header, data, grids, units
 end
 
 function create_dicts()

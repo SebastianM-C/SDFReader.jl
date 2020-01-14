@@ -1,4 +1,4 @@
 @testset "SDF" begin
-    fn = "0002.sdf"
+    include("sdf_header.jl")
     blocks = SDF.fetch_blocks(fn)
 end
