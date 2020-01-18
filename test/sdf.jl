@@ -5,7 +5,7 @@
 
     @testset "Units" begin
         for (key, block) in blocks
-            if hasfield(typeof(block), :units)
+            if @compat hasfield(typeof(block), :units)
                 @test block.units == units[key]
             end
         end
@@ -13,7 +13,7 @@
 
     @testset "Data" begin
         open(fn, "r") do f
-            for (key, block) in blocks
+            @testset "$key" for (key, block) in blocks
                 @test read!(f, block) == data[key]
             end
         end
