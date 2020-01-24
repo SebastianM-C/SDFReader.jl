@@ -55,6 +55,7 @@ abstract type AbstractBlockHeader{T,N} end
 
 struct ConstantBlockHeader{T,N} <: AbstractBlockHeader{T,N}
     base_header::BlockHeader{T,N}
+    val::T
 end
 
 struct CPUSplitBlockHeader{T,N} <: AbstractBlockHeader{T,N}
@@ -149,7 +150,8 @@ end
 header(filename::AbstractString) = open(header, filename)
 
 function Base.read(f, block::BlockHeader{T,D,BLOCKTYPE_CONSTANT}) where {T,D}
-    ConstantBlockHeader(block)
+    val = read(f, T)
+    ConstantBlockHeader(block, val)
 end
 
 function Base.read(f, block::BlockHeader{T,D,BLOCKTYPE_PLAIN_VARIABLE}) where {T,D}
@@ -214,6 +216,7 @@ function Base.read(f, block::BlockHeader{T,D,BLOCKTYPE_RUN_INFO}) where {T,D}
     compile_date = read(f, Int32)
     run_date = read(f, Int32)
     io_date = read(f, Int32)
+    # TODO save these fields
 
     CPUInfoBlockHeader(block)
 end

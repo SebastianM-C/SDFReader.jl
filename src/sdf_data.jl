@@ -1,6 +1,6 @@
 function Base.read!(f, block::ConstantBlockHeader{T}) where T
     # read(f, type_from(Val(block.d_type)))
-    read(f, T)
+    block.val
 end
 
 function Base.read!(f, block::PlainVariableBlockHeader{T}) where T
@@ -104,4 +104,7 @@ function Base.read!(f, block::PointMeshBlockHeader{T,D}) where {T,D}
     end
 
     return raw_data
+end
+
+function Base.read!(f, block::CPUInfoBlockHeader{T,D}) where {T,D}
 end
