@@ -11,7 +11,7 @@ RecursiveArrayTools = "731186ca-8d62-57ce-b412-fbd966d074cd"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 
 [compat]
-GeometryTypes = "0.7"
+GeometryTypes = "0.7, 0.8"
 PyCall = "1.91"
 RecursiveArrayTools = "1.2, 2.0"
 Unitful = "0.18, 1.0"
