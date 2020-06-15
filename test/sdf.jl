@@ -11,10 +11,13 @@
         end
     end
 
+    unsupported = ["cpu/proton", "cpu/electron", "run_info", "cpu_rank"]
     @testset "Data" begin
         open(fn, "r") do f
             @testset "$key" for (key, block) in blocks
-                @test read!(f, block) == data[key]
+                if key ∉ unsupported
+                    @test read!(f, block) == data[key]
+                end
             end
         end
     end
