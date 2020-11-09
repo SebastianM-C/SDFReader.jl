@@ -53,10 +53,3 @@ end
 cart_idx(pt, ::Val{1}) = CartesianIndex(pt-1, 0, 0)
 cart_idx(pt, ::Val{2}) = CartesianIndex(0, pt-1, 0)
 cart_idx(pt, ::Val{3}) = CartesianIndex(0, 0, pt-1)
-
-function Base.read!(f, block::PointVariableBlockHeader{T}) where T
-    raw_data = Array{T, 1}(undef, block.npart)
-    seek(f, block.base_header.data_location)
-
-    read!(f, raw_data)
-end

@@ -9,6 +9,13 @@ function Base.read!(f, block::ConstantBlockHeader{T}) where T
     block.val
 end
 
+function Base.read!(f, block::PointVariableBlockHeader{T}) where T
+    raw_data = Array{T, 1}(undef, block.npart)
+    seek(f, block.base_header.data_location)
+
+    read!(f, raw_data)
+end
+
 function Base.read!(f, block::PlainVariableBlockHeader{T}) where T
     dims = prod(block.npts)
     raw_data = Array{T, 1}(undef, dims)
