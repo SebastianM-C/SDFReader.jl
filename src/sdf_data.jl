@@ -1,8 +1,7 @@
-function Base.read(f, block::AbstractBlockHeader)
+function Base.read(f, block::AbstractBlockHeader{T, D}) where {T, D}
     raw_data = read!(f, block)
-    units = get_units(block.units)
 
-    raw_data * units
+    raw_data .* get_units(block.units)
 end
 
 function Base.read!(f, block::ConstantBlockHeader{T}) where T

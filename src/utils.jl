@@ -1,4 +1,5 @@
 function get_units(unit_str)
+    isempty(unit_str) && return 1
     # workaround stuff like kg.m/s
     unit_str = replace(unit_str, "."=>"*")
     # workaround stuff like 1/m^3
@@ -7,3 +8,5 @@ function get_units(unit_str)
     end
     uparse(unit_str)
 end
+
+get_units(unit_str::NTuple) = get_units.(unit_str)
