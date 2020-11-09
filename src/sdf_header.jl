@@ -39,7 +39,7 @@ function BlockHeader(f::IOStream, start, string_length, header_length)
     n_dims = read(f, Int32)
     name = simple_str(read(f, string_length))
 
-    d_type = type_from(Val(data_type))
+    d_type = typemap(Val(data_type))
     seek(f, start + header_length)
 
     BlockHeader{d_type, Int(n_dims), block_type}(
