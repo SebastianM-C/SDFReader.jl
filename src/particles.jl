@@ -1,33 +1,30 @@
-function particle_variable(data::PyArray{T,N}, units::Units{U,D}) where {T,N,D,U}
-    Array(data*units)
+struct ParticleVariable{T,N,A} <: AbstractQuantity
+    data::Array{T, 1}
+    grid::NTuple{N, A}
 end
 
-function particle_variable(x::PyArray{T,N}, y::PyArray{T,N}, units::Units{U,D}) where {T,N,D,U}
+function ParticleVariable(data::Array{T,N}, grid, units::Units{U,D}) where {T,N,D,U}
+    ParticleVariable(data*units, grid)
+end
+
+function ParticleVariable(x::Array{T,N}, y::Array{T,N}, grid, units::Units{U,D}) where {T,N,D,U}
     data = Point{2,T}.(x, y)
-    Array(data*units)
+    ParticleVariable(data*units, grid)
 end
 
-function particle_variable(x::PyArray{T,N}, y::PyArray{T,N}, z::PyArray{T,N}, units::Units{U,D}) where {T,N,D,U}
+function ParticleVariable(x::Array{T,N}, y::Array{T,N}, z::Array{T,N}, grid, units::Units{U,D}) where {T,N,D,U}
     data = Point{3,T}.(x, y, z)
-    Array(data*units)
+    ParticleVariable(data*units, grid)
 end
 
-function particle_variable(fr::PyObject, key::Symbol)
-    py_obj = getproperty(fr, key)
-    @debug "Reading data"
-    py_data = py_obj.data
-    if py_data isa Tuple
-        @debug "Converting vector data"
-        data = convert_it.(py_data)
-        @debug "Reading units"
-        units = get_units.(py_obj.units)
+function ParticleVariable(fn::AbstractString, block::AbstractBlockHeader)
+    data = read!(fn, block)
+    if data isa Tuple
+        units = get_units.(block.units)
         @assert length(unique(units)) == 1
-        particle_variable(data..., units[1])
+        ParticleVariable(data..., units[1])
     else
-        @debug "Converting scalar data"
-        data = convert_it(py_data)
-        @debug "Reading units"
-        units = get_units(py_obj.units)
-        particle_variable(data, units)
+        units = get_units(block.units)
+        ParticleVariable(data, units)
     end
 end
