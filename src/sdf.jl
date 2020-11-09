@@ -1,5 +1,7 @@
 module SDF
 
+using Unitful
+
 export file_summary, AbstractBlockHeader
 
 const ID_LENGTH = 32
@@ -52,34 +54,27 @@ const DATATYPE_OTHER = Int32(8)
 
 include("sdf_header.jl")
 include("sdf_data.jl")
+include("utils.jl")
 
-@generated function type_from(data_type::Val{N}) where N
-    if N === DATATYPE_REAL4
-        :(Float32)
-    elseif N === DATATYPE_REAL8
-        :(Float64)
-    elseif N === DATATYPE_INTEGER4
-        :(Int32)
-    elseif N === DATATYPE_INTEGER8
-        :(Int64)
+@generated function typemap(data_type::Val{N}) :: DataType where N
+    if N == DATATYPE_NULL
+        Nothing
+    elseif N == DATATYPE_INTEGER4
+        Int32
+    elseif N == DATATYPE_INTEGER8
+        Int64
+    elseif N == DATATYPE_REAL4
+        Float32
+    elseif N == DATATYPE_REAL8
+        Float64
+    elseif N == DATATYPE_REAL16
+        Nothing # unsupported
+    elseif N == DATATYPE_CHARACTER
+        Char
+    elseif N == DATATYPE_LOGICAL
+        Bool
     else
-        :(Nothing)
-    end
-end
-
-function fetch_blocks(filename)
-    open(filename, "r") do f
-        h = header(f)
-        blocks = Array{AbstractBlockHeader}(undef, h.nblocks)
-
-        block_start = h.first_block_location
-        for i = 1:h.nblocks
-            block = BlockHeader(f, block_start, h.string_length, h.block_header_length)
-            blocks[i] = read(f, block)
-            block_start = block.next_block_location
-        end
-
-        blocks
+        Nothing
     end
 end
 
