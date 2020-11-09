@@ -23,8 +23,8 @@ jobs:
       - run: |
           julia --project=docs -e '
             using Documenter: doctest
-            using JSON3
-            doctest(JSON3)'
+            using SDFReader
+            doctest(SDFReader)'
       - run: julia --project=docs docs/make.jl
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
