@@ -1,9 +1,3 @@
-function Base.read(f, block::AbstractBlockHeader{T, D}) where {T, D}
-    raw_data = read!(f, block)
-
-    raw_data .* get_units(block.units)
-end
-
 function Base.read!(f, block::ConstantBlockHeader{T}) where T
     block.val
 end

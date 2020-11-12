@@ -1,8 +1,6 @@
 module SDF
 
-using Unitful
-
-export file_summary, AbstractBlockHeader
+export header, file_summary, AbstractBlockHeader
 
 const ID_LENGTH = 32
 const ENDIANNESS = 16911887
@@ -54,7 +52,6 @@ const DATATYPE_OTHER = Int32(8)
 
 include("sdf_header.jl")
 include("sdf_data.jl")
-include("utils.jl")
 
 @generated function typemap(data_type::Val{N}) :: DataType where N
     if N == DATATYPE_NULL
