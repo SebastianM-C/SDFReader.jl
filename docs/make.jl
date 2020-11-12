@@ -1,13 +1,17 @@
 using Documenter, SDFReader
 
-makedocs(;
-    modules=[SDFReader],
-    format=Documenter.HTML(),
-    pages=[
-        "Home" => "index.md",
+makedocs(
+    sitename = "SDFReader",
+    format = Documenter.HTML(
+        prettyurls = get(ENV, "CI", nothing) == "true"
+    ),
+    pages = [
+        "index.md",
     ],
-    repo="https://github.com/SebastianM-C/SDFReader.jl/blob/{commit}{path}#L{line}",
-    sitename="SDFReader.jl",
-    authors="Sebastian Micluța-Câmpeanu <m.c.sebastian95@gmail.com>",
-    assets=String[],
+    modules = [SDFReader]
+)
+
+deploydocs(
+    repo = "github.com/SebastianM-C/SDFReader.jl",
+    push_preview = true
 )
