@@ -41,5 +41,5 @@ The returned arrays will have the stored values and the corresponding units
 
 For more information regarding the information contained in the `.sdf` files,
 please consult the following
-    - [EPOCH documentation](https://cfsa-pmw.warwick.ac.uk/mediawiki/index.php/EPOCH:Landing_Page)
-    - [SDF file format documentation](https://cfsa-pmw.warwick.ac.uk/SDF/SDF_documentation)
+* [EPOCH documentation](https://cfsa-pmw.warwick.ac.uk/mediawiki/index.php/EPOCH:Landing_Page)
+* [SDF file format documentation](https://cfsa-pmw.warwick.ac.uk/SDF/SDF_documentation)
