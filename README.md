@@ -4,13 +4,13 @@
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://SebastianM-C.github.io/SDFReader.jl/dev)
 ![https://www.tidyverse.org/lifecycle/#experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)
 
-[EPOCH](https://cfsa-pmw.warwick.ac.uk/mediawiki/index.php/EPOCH:FAQ) is a code for plasma physics simulations using the Particle-in-Cell method. The simulation results are written is .sdf binary files. Several readers for this files are available at https://cfsa-pmw.warwick.ac.uk/SDF. This package intends to be another reader for the .sdf file type.
+[EPOCH](https://cfsa-pmw.warwick.ac.uk/mediawiki/index.php/EPOCH:FAQ) is a code for plasma physics simulations using the Particle-in-Cell method. The simulation results are written is `.sdf` binary files. Several readers for this files are available at https://cfsa-pmw.warwick.ac.uk/SDF. This package intends to be another reader for the `.sdf` file type.
 
 ## Quick start
 
 Install the package using
 ```
-] add SDFReader
+]add SDFReader
 ```
 
 Assuming that you have a `.sdf` file generated from an EPOCH simulation,
@@ -37,7 +37,9 @@ keys = ["weight/electron",
 w, (x,y,z), py, pz = readkeys(file, blocks, keys)
 ```
 The returned arrays will have the stored values and the corresponding units
-(via Unitful.jl).
+(via [Unitful.jl](https://github.com/PainterQubits/Unitful.jl/)).
 
 For more information regarding the information contained in the `.sdf` files,
-please consult the EPOCH documentation.
+please consult the following
+    - [EPOCH documentation](https://cfsa-pmw.warwick.ac.uk/mediawiki/index.php/EPOCH:Landing_Page)
+    - [SDF file format documentation](https://cfsa-pmw.warwick.ac.uk/SDF/SDF_documentation)
