@@ -62,25 +62,53 @@ struct CPUSplitBlockHeader{T,N} <: AbstractBlockHeader{T,N}
     base_header::BlockHeader{T,N}
 end
 
-struct PlainVariableBlockHeader{T,N} <: AbstractBlockHeader{T,N}
-    base_header::BlockHeader{T,N}
-
-    mult::Float64
-    units::String
-    mesh_id::String
-    npts::NTuple{N,Int32}
-    stagger::Int32
+@enum Geometry begin
+    Null        = 0
+    Cartesian   = 1
+    Cylindrical = 2
+    Spherical   = 3
 end
 
-struct PointVariableBlockHeader{T,N} <: AbstractBlockHeader{T,N}
-    base_header::BlockHeader{T,N}
+@doc """
+    PlainMeshBlockHeader{T,N}
 
-    mult::Float64
-    units::String
-    mesh_id::String
-    npart::Int64
-end
+A mesh defines the locations at which variables are defined.
+Since the geometry of a problem is fixed and most variables will be defined
+at positions relative to a fixed grid, it makes sense to write this
+position data once in its own block.
+Each variable will then refer to one of these mesh blocks to provide their location data.
 
+The `PlainMeshBlockHeader` is used for representing the positions at which
+scalar field discretizations are defined.
+The block header contains the `base_header` (a `BlockHeader`) and the following metadata
+- `mults`: The normalisation factor applied to the grid data
+in each direction.
+- `labels`: The axis labels for this grid in each direction.
+- `units`: The units for this grid in each direction after the
+normalisation factors have been applied.
+- `geometry`: The geometry of the block.
+- `minval`: The minimum coordinate values in each direction.
+- `maxval`: The maximum coordinate values in each direction.
+
+The geometry of the block can take the following values
+- `Null`: Unspecified geometry. This is an error.
+- `Cartesian`: Cartesian geometry.
+- `Cylindrical`: Cylindrical geometry.
+- `Spherical`: Spherical geometry.
+
+The last item in the header is `dims`, is the number of grid points in
+each dimension.
+
+The data written is the locations of node points for the mesh in each
+of the simulation dimensions.
+Therefore for a 3d simulation of resolution ``(nx; ny; nz)``, the data will consist of
+a 1d array of X positions with ``(nx + 1)`` elements followed by
+a 1d array of Y positions with ``(ny + 1)`` elements and finally
+a 1d array of Z positions with ``(nz + 1)`` elements.
+Here the resolution specifies the number of simulation cells and therefore
+the nodal values have one extra element. In a 1d or 2d simulation, you would
+write only the X or X and Y arrays respectively.
+"""
 struct PlainMeshBlockHeader{T,N} <: AbstractBlockHeader{T,N}
     base_header::BlockHeader{T}
 
@@ -90,9 +118,48 @@ struct PlainMeshBlockHeader{T,N} <: AbstractBlockHeader{T,N}
     geometry::Int32
     minval::Array{Float64,1}
     maxval::Array{Float64,1}
-    npts::Array{Int32,1}
+    dims::Array{Int32,1}
 end
 
+@doc """
+    PointMeshBlockHeader{T,N}
+
+A mesh defines the locations at which variables are defined.
+Since the geometry of a problem is fixed and most variables will be defined
+at positions relative to a fixed grid, it makes sense to write this
+position data once in its own block.
+Each variable will then refer to one of these mesh blocks to provide their location data.
+
+The `PointMeshBlockHeader` is used for representing the positions at which
+vector field discretizations are defined.
+The block header contains the `base_header` (a `BlockHeader`) and the following metadata
+- `mults`: The normalisation factor applied to the grid data
+in each direction.
+- `labels`: The axis labels for this grid in each direction.
+- `units`: The units for this grid in each direction after the
+normalisation factors have been applied.
+- `geometry`: The geometry of the block.
+- `minval`: The minimum coordinate values in each direction.
+- `maxval`: The maximum coordinate values in each direction.
+- `np`: The number of points.
+
+The geometry of the block can take the following values
+- `Null`: Unspecified geometry. This is an error.
+- `Cartesian`: Cartesian geometry.
+- `Cylindrical`: Cylindrical geometry.
+- `Spherical`: Spherical geometry.
+
+The data written is the locations of each point in the first direction followed by
+the locations in the second direction and so on.
+Thus, for a 3d simulation, if we define the first point as having coordinates
+``(x_1; y_1; x_1)`` and the second point as ``(x_2; y_2; z_2)``, etc.
+then the data written to file is a 1d array with
+ elements ``(x_1; x_2; \\dots; x_{np})``, followed by
+the array ``(y_1; y_2; \\dots; y_{np})`` and finally
+the array ``(z_1; z_2; \\dots; z_{np})`` where ``np`` corresponds to the
+number of points in the mesh. For a 1d simulation, only the x array is written
+and for a 2d simulation only the x and y arrays are written.
+"""
 struct PointMeshBlockHeader{T,N} <: AbstractBlockHeader{T,N}
     base_header::BlockHeader{T,N}
 
@@ -102,155 +169,104 @@ struct PointMeshBlockHeader{T,N} <: AbstractBlockHeader{T,N}
     geometry::Int32
     minval::Array{Float64,1}
     maxval::Array{Float64,1}
-    npart::Int64
+    np::Int64
 end
 
-struct CPUInfoBlockHeader{T,N} <: AbstractBlockHeader{T,N}
+@enum Stagger begin
+    CellCentre = 0
+    FaceX      = 1
+    FaceY      = 2
+    FaceZ      = 4
+    EdgeX      = 6
+    EdgeY      = 5
+    EdgeZ      = 3
+    Vertex     = 7
+end
+
+@doc """
+    PlainVariableBlockHeader{T,N}
+
+The `PlainVariableBlockHeader` is used to describe a variable which is
+located relative to the points given in a mesh block.
+
+The block header contains the `base_header` (a `BlockHeader`) and the following metadata
+- `mult`: The normalisation factor applied to the variable data.
+- `units`: The units for this variable after the normalisation factor has
+been applied.
+- `mesh_id`: The name(`id`) of the mesh relative to which this block's data is defined.
+- `dims`: The number of grid points in each dimension.
+- `stagger`: The location of the variable relative to its associated mesh.
+
+The mesh associated with a variable is always node-centred, i.e. the values written as
+mesh data specify the nodal values of a grid. Variables may be defined at points
+which are offset from this grid due to grid staggering in the code.
+The `stagger` entry specifies where the variable is defined relative to the mesh.
+Since we have already defined the number of points that the associated mesh contains,
+this determines how many points are required to display the variable.
+
+The `stagger` entry can take one of the following values
+- `CellCentre`: Cell centred. At the midpoint between nodes. Implies an
+``(nx; ny; nz)`` grid.
+- `FaceX`: Face centred in X. Located at the midpoint between nodes on
+the Y-Z plane. Implies an ``(nx + 1; ny; nz)`` grid.
+- `FaceY`: Face centred in Y. Located at the midpoint between nodes on
+the X-Z plane. Implies an ``(nx; ny + 1; nz)`` grid.
+- `FaceZ`: Face centred in Z. Located at the midpoint between nodes on
+the X-Y plane. Implies an ``(nx; ny; nz + 1)`` grid.
+- `EdgeX`: Edge centred along X. Located at the midpoint between nodes
+along the X-axis. Implies an ``(nx; ny + 1; nz + 1)`` grid.
+- `EdgeY`: Edge centred along Y. Located at the midpoint between nodes
+along the Y-axis. Implies an ``(nx + 1; ny; nz + 1)`` grid.
+- `EdgeZ`: Edge centred along Z. Located at the midpoint between nodes
+along the Z-axis. Implies an ``(nx + 1; ny + 1; nz)`` grid.
+- `Vertex`: Node centred. At the same place as the mesh. Implies an ``(nx+
+1; ny + 1; nz + 1)`` grid.
+
+For a grid based variable, the data written contains the values of
+the given variable at each point on the mesh.
+This is in the form of a 1d, 2d or 3d array depending on the dimensions
+of the simulation. The size of the array depends on the size of
+the associated mesh and the grid staggering as indicated above. It
+corresponds to the values written into the `dims` array written for
+this block.
+"""
+struct PlainVariableBlockHeader{T,N} <: AbstractBlockHeader{T,N}
+    base_header::BlockHeader{T,N}
+
+    mult::Float64
+    units::String
+    mesh_id::String
+    dims::NTuple{N,Int32}
+    stagger::Stagger
+end
+
+@doc """
+    PointVariableBlockHeader{T,N}
+
+The `PointVariableBlockHeader` is used to describe a variable which is
+located relative to the points given in a mesh block.
+
+The block header contains the `base_header` (a `BlockHeader`) and the following metadata
+- `mult`: The normalisation factor applied to the variable data.
+- `units`: The units for this variable after the normalisation factor has
+been applied.
+- `mesh_id`: The name(`id`) of the mesh relative to which this block's data is defined.
+- `np`: The number of points.
+
+Similarly to the grid based variable, the data written contains the values
+of the given variable at each point on the mesh. Since each the location of
+each point in space is known fully, there is no need for a stagger variable.
+The data is in the form of a 1d array with `np` elements.
+"""
+struct PointVariableBlockHeader{T,N} <: AbstractBlockHeader{T,N}
+    base_header::BlockHeader{T,N}
+
+    mult::Float64
+    units::String
+    mesh_id::String
+    np::Int64
+end
+
+struct RunInfoBlockHeader{T,N} <: AbstractBlockHeader{T,N}
     base_header::BlockHeader{T,N}
 end
-
-function header(f::IOStream)
-    sdf_magic = simple_str(read(f, 4))
-    endianness = read(f, Int32)
-    file_version = read(f, Int32)
-    file_revision = read(f, Int32)
-    code_name = simple_str(read(f, ID_LENGTH))
-    first_block_location = read(f, Int64)
-    summary_location = read(f, Int64)
-    summary_size = read(f, Int32)
-    nblocks = read(f, Int32)
-    block_header_length = read(f, Int32)
-    step = read(f, Int32)
-    time = read(f, Float64)
-    jobid1 = read(f, Int32)
-    jobid2 = read(f, Int32)
-    string_length = read(f, Int32)
-    code_io_version = read(f, Int32)
-
-    Header(
-        sdf_magic,
-        endianness,
-        file_version,
-        file_revision,
-        code_name,
-        first_block_location,
-        summary_location,
-        summary_size,
-        nblocks,
-        block_header_length,
-        step,
-        time,
-        jobid1,
-        jobid2,
-        string_length,
-        code_io_version,
-    )
-end
-
-header(filename::AbstractString) = open(header, filename)
-
-function Base.read(f, block::BlockHeader{T,D,BLOCKTYPE_CONSTANT}) where {T,D}
-    val = read(f, T)
-    ConstantBlockHeader(block, val)
-end
-
-function Base.read(f, block::BlockHeader{T,D,BLOCKTYPE_PLAIN_VARIABLE}) where {T,D}
-    npts = Array{Int32, 1}(undef, D)
-
-    mult, units, mesh_id = read_variable_common!(f)
-    read!(f, npts)
-    stagger = read(f, Int32)
-
-    PlainVariableBlockHeader(block, mult, units, mesh_id, Tuple(npts), stagger)
-end
-
-function Base.read(f, block::BlockHeader{T,D,BLOCKTYPE_POINT_VARIABLE}) where {T,D}
-    mult, units, mesh_id = read_variable_common!(f)
-    npart = read(f, Int64)
-
-    PointVariableBlockHeader(block, mult, units, mesh_id, npart)
-end
-
-function Base.read(f, block::BlockHeader{T,N,BLOCKTYPE_PLAIN_MESH}) where {T,N}
-    npts = Array{Int32, 1}(undef, N)
-
-    mults, labels, units, geometry, minval, maxval = read_mesh_common!(f,N)
-    read!(f, npts)
-
-    PlainMeshBlockHeader(
-        block,
-        mults,
-        labels,
-        units,
-        geometry,
-        minval,
-        maxval,
-        npts,
-    )
-end
-
-function Base.read(f, block::BlockHeader{T,N,BLOCKTYPE_POINT_MESH}) where {T,N}
-    mults, labels, units, geometry, minval, maxval = read_mesh_common!(f,N)
-    npart = read(f, Int64)
-
-    PointMeshBlockHeader(
-        block,
-        mults,
-        labels,
-        units,
-        geometry,
-        minval,
-        maxval,
-        npart,
-    )
-end
-
-function Base.read(f, block::BlockHeader{T,D,BLOCKTYPE_RUN_INFO}) where {T,D}
-    code_version = read(f, Int32)
-    code_revision = read(f, Int32)
-    commit_id = simple_str(read(f, ID_LENGTH))
-    sha1sum = simple_str(read(f, ID_LENGTH))
-    compile_machine = simple_str(read(f, ID_LENGTH))
-    compile_flags = simple_str(read(f, ID_LENGTH))
-    defines = read(f, Int64)
-    compile_date = read(f, Int32)
-    run_date = read(f, Int32)
-    io_date = read(f, Int32)
-    # TODO save these fields
-
-    CPUInfoBlockHeader(block)
-end
-
-function Base.read(f, block::BlockHeader{T,D,BLOCKTYPE_CPU_SPLIT}) where {T,D}
-    CPUSplitBlockHeader(block)
-end
-
-function read_variable_common!(f)
-    mult = read(f, Float64)
-    units = simple_str(read(f, ID_LENGTH))
-    mesh_id = simple_str(read(f, ID_LENGTH))
-
-    (mult, units, mesh_id)
-end
-
-function read_mesh_common!(f, n)
-    mults = Array{Float64, 1}(undef, n)
-    minval = Array{Float64, 1}(undef, n)
-    maxval = Array{Float64, 1}(undef, n)
-
-    read!(f, mults)
-
-    labels = ntuple(n) do i
-        simple_str(read(f, ID_LENGTH))
-    end
-    units = ntuple(n) do i
-        simple_str(read(f, ID_LENGTH))
-    end
-    geometry = read(f, Int32)
-    read!(f, minval)
-    read!(f, maxval)
-
-    (mults, labels, units, geometry, minval, maxval)
-end
-
-simple_str(s) = replace(String(rstrip(String(s))), "\0" => "")
