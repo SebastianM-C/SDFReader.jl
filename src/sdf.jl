@@ -1,6 +1,11 @@
 module SDF
 
-export header, file_summary, AbstractBlockHeader
+export header, file_summary,
+    AbstractBlockHeader,
+    PlainVariableBlockHeader,
+    PointVariableBlockHeader,
+    PlainMeshBlockHeader,
+    PointMeshBlockHeader
 
 const ID_LENGTH = 32
 const ENDIANNESS = 16911887
@@ -51,7 +56,8 @@ const DATATYPE_LOGICAL = Int32(7)
 const DATATYPE_OTHER = Int32(8)
 
 include("sdf_header.jl")
-include("sdf_data.jl")
+include("read_header.jl")
+include("read_data.jl")
 
 @generated function typemap(data_type::Val{N}) :: DataType where N
     if N == DATATYPE_NULL
