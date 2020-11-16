@@ -1,6 +1,7 @@
 module SDF
 
 export header, file_summary,
+    Stagger, CellCentre, FaceX, FaceY, FaceZ, EdgeX, EdgeY, EdgeZ, Vertex,
     AbstractBlockHeader,
     PlainVariableBlockHeader,
     PointVariableBlockHeader,
