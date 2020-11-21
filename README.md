@@ -21,7 +21,8 @@ using SDFReader
 
 dir = "my_simulation"
 file = "0002.sdf"
-blocks = file_summary(joinpath(dir, file))
+full_path = joinpath(dir, file)
+blocks = file_summary(full_path)
 ```
 
 This will give the dictionary of blocks that correspond to the information
@@ -34,7 +35,7 @@ keys = ["weight/electron",
         "py/electron",
         "pz/electron"]
 
-w, (x,y,z), py, pz = readkeys(file, blocks, keys)
+w, (x,y,z), py, pz = readkeys(full_path, blocks, keys)
 ```
 The returned arrays will have the stored values and the corresponding units
 (via [Unitful.jl](https://github.com/PainterQubits/Unitful.jl/)).
