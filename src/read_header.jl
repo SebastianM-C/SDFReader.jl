@@ -63,7 +63,7 @@ end
 
 function Base.read(f, block::BlockHeader{T,N,BLOCKTYPE_POINT_MESH}) where {T,N}
     mults, labels, units, geometry, minval, maxval = read_mesh_common!(f,N)
-    npart = read(f, Int64)
+    np = read(f, Int64)
 
     PointMeshBlockHeader(
         block,
@@ -73,7 +73,7 @@ function Base.read(f, block::BlockHeader{T,N,BLOCKTYPE_POINT_MESH}) where {T,N}
         geometry,
         minval,
         maxval,
-        npart,
+        np,
     )
 end
 
@@ -89,9 +89,9 @@ end
 
 function Base.read(f, block::BlockHeader{T,D,BLOCKTYPE_POINT_VARIABLE}) where {T,D}
     mult, units, mesh_id = read_variable_common!(f)
-    npart = read(f, Int64)
+    np = read(f, Int64)
 
-    PointVariableBlockHeader(block, mult, units, mesh_id, npart)
+    PointVariableBlockHeader(block, mult, units, mesh_id, np)
 end
 
 function Base.read(f, block::BlockHeader{T,D,BLOCKTYPE_RUN_INFO}) where {T,D}
@@ -135,7 +135,7 @@ function read_mesh_common!(f, n)
     units = ntuple(n) do i
         simple_str(read(f, ID_LENGTH))
     end
-    geometry = read(f, Int32)
+    geometry = Geometry(read(f, Int32))
     read!(f, minval)
     read!(f, maxval)
 

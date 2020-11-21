@@ -115,7 +115,7 @@ struct PlainMeshBlockHeader{T,N} <: AbstractBlockHeader{T,N}
     mults::Array{Float64,1}
     labels::NTuple{N,String}
     units::NTuple{N,String}
-    geometry::Int32
+    geometry::Geometry
     minval::Array{Float64,1}
     maxval::Array{Float64,1}
     dims::Array{Int32,1}
@@ -166,7 +166,7 @@ struct PointMeshBlockHeader{T,N} <: AbstractBlockHeader{T,N}
     mults::Array{Float64,1}
     labels::NTuple{N,String}
     units::NTuple{N,String}
-    geometry::Int32
+    geometry::Geometry
     minval::Array{Float64,1}
     maxval::Array{Float64,1}
     np::Int64
