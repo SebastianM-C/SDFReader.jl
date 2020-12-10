@@ -21,7 +21,7 @@ using Unitful
     @test (t |> u"fs") ≈ 10u"fs" atol = 0.1u"fs"
 
     nx = get_parameter(file, :nx)
-    @test nx = 10
+    @test nx == 10
     λ = get_parameter(file, :laser, :lambda)
     @test (λ |> u"nm") ≈ 800u"nm"
 end
