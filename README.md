@@ -13,31 +13,51 @@ Install the package using
 ]add SDFReader
 ```
 
-Assuming that you have a `.sdf` file generated from an EPOCH simulation,
-use `file_summary` to get an overview of the data stored in the file.
+Assuming that you have a folder with `.sdf` files generated from
+an EPOCH simulation, use `read_simulation` to read the metadata
+for the simulation. You can index into the resulting object and access
+individual simulation files. Note that by default EPOCH starts indexing
+form 0, while in Julia we usually start from 1.
 
 ```julia
 using SDFReader
 
 dir = "my_simulation"
-file = "0002.sdf"
-blocks = file_summary(joinpath(dir, file))
+sim = read_simulation(dir)
+sim[1] # corresponds to the first sdf file (usually 0000.sdf).
 ```
 
-This will give the dictionary of blocks that correspond to the information
-represented by the keys. In order to read the data, you can use the
-`readkeys` function. Here is an example
+With the `keys` function you can observe what data was saved in the
+simulation. The symbols correspond to the names used for the
+saved variables. Note that some identifiers used by EPOCH, such
+as the ones for species properties are not valid julia symbols
+(such as `px/electron`), so they must be written like `Symbol("px/electron")`.
 
 ```julia
-keys = ["weight/electron",
-        "grid/electron",
-        "py/electron",
-        "pz/electron"]
-
-w, (x,y,z), py, pz = readkeys(file, blocks, keys)
+keys(sim[1])
 ```
-The returned arrays will have the stored values and the corresponding units
-(via [Unitful.jl](https://github.com/PainterQubits/Unitful.jl/)).
+
+In order to read the data for scalar field quantities such as `:ex` or `Symbol("px/electron")`,
+you can simply index into the file
+
+```julia
+file = sim[1]
+Ex = file[:ex]
+```
+The returned object will have a `.data` and `.grid` fields which will contain
+arrays that store the values (with units
+via [Unitful.jl](https://github.com/PainterQubits/Unitful.jl/)) and the corresponding coordinate
+values.
+
+If you need more direct acces to the data, you can use the `read` function
+as follows
+```julia
+w = read(file, Symbol("weight/electron"))
+Ex, Ey = read(file, :ex, :ey)
+```
+Note that in this case the corresponding grids for the fields (e.g. `:ex` and `:ey` in the above)
+are not automatically created. Thus this way of acessing the data is recommended only
+in more advanced cases.
 
 For more information regarding the information contained in the `.sdf` files,
 please consult the following
