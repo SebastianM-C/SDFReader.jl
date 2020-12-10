@@ -59,6 +59,18 @@ Note that in this case the corresponding grids for the fields (e.g. `:ex` and `:
 are not automatically created. Thus this way of acessing the data is recommended only
 in more advanced cases.
 
+You can also acces the (simulation) time corresponding to a file with
+```julia
+get_time(file)
+```
+and also the parameters from the `input.deck` file with `get_parameter`.
+The `input.deck` parser only supports simple `key=value` expressions.
+You can also access nested values by providing a second argument.
+```julia
+nx = get_parameter(file, :nx)
+λ = get_parameter(file, :laser, :lambda)
+```
+
 For more information regarding the information contained in the `.sdf` files,
 please consult the following
 * [EPOCH documentation](https://cfsa-pmw.warwick.ac.uk/mediawiki/index.php/EPOCH:Landing_Page)

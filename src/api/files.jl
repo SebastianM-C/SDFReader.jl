@@ -30,5 +30,6 @@ function Base.getindex(sdf::SDFFile, idx::Symbol)
 end
 
 get_parameter(sdf::SDFFile, p::Symbol) = getproperty(sdf.param[], p)
+get_parameter(sdf::SDFFile, p::Symbol, c::Symbol) = getproperty(get_parameter(sdf, p), c)
 
 get_time(sdf::SDFFile) = sdf.header.time * u"s"
