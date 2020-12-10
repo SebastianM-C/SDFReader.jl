@@ -1,4 +1,4 @@
-struct VectorField{T,G} <: AbstractField
+struct VectorField{N,T,G} <: AbstractField
     data::AbstractArray{T,N}
-    grid::AbstractArray{G,N}
+    grid::NTuple{N,G}
 end

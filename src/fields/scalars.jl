@@ -1,6 +1,6 @@
-struct ScalarField{T,G,N} <: AbstractField
+struct ScalarField{N,T,G} <: AbstractField
     data::AbstractArray{T,N}
-    grid::AbstractArray{G,N}
+    grid::NTuple{N,G}
 end
 
 function read_scalar_field(file, blocks, name)
