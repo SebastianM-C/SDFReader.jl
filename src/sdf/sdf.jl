@@ -1,6 +1,9 @@
 module SDF
 
-export header, file_summary,
+using BangBang
+
+export header, Header,
+    file_summary,
     Stagger, CellCentre, FaceX, FaceY, FaceZ, EdgeX, EdgeY, EdgeZ, Vertex,
     AbstractBlockHeader,
     PlainVariableBlockHeader,
@@ -82,20 +85,20 @@ include("read_data.jl")
     end
 end
 
-function file_summary(filename)
-    open(filename, "r") do f
-        h = header(f)
-        blocks = Dict{String,AbstractBlockHeader}()
+file_summary(filename) = open(file_summary, filename)[2]
 
-        block_start = h.summary_location
-        for i = 1:h.nblocks
-            block = BlockHeader(f, block_start, h.string_length, h.block_header_length)
-            blocks[block.id] = read(f, block)
-            block_start = block.next_block_location
-        end
+function file_summary(f::IOStream)
+    h = header(f)
+    blocks = NamedTuple()
 
-        blocks
+    block_start = h.summary_location
+    for i in Base.OneTo(h.nblocks)
+        block = BlockHeader(f, block_start, h.string_length, h.block_header_length)
+        blocks = push!!(blocks, Symbol(block.id) => read(f, block))
+        block_start = block.next_block_location
     end
+
+    h, blocks
 end
 
 end  # module SDF
