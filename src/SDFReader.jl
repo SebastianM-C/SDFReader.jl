@@ -3,7 +3,9 @@ module SDFReader
 export SDF, file_summary,
     read_simulation, EPOCHSimulation, SDFFile,
     ScalarField, VectorField, ScalarVariable, VectorVariable,
-    get_parameter, get_time
+    dimensionaltiy, field,
+    get_parameter, get_time,
+    to_cylindrical
 
 using Unitful
 using PhysicalConstants.CODATA2018: c_0, ε_0, μ_0, m_e, e
