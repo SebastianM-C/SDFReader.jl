@@ -1,9 +1,9 @@
 using LinearAlgebra
 using CoordinateTransformations
+using ImageTransformations
 using StaticArrays
 using Unitful
 using Unitful: Units
-using Base.Cartesian
 
 abstract type AbstractField{N} end
 
@@ -113,3 +113,4 @@ end
 include("units.jl")
 include("algebra.jl")
 include("transformations.jl")
+include("subset.jl")
