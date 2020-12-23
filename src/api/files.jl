@@ -10,7 +10,7 @@ function read_file(file, p)
     SDFFile(file, h, blocks, p)
 end
 
-function Base.read(sdf::SDFFile, entry::AbstractString)
+function Base.read(sdf::SDFFile, entry::Symbol)
     open(sdf.name) do f
         read(f, getproperty(sdf.blocks, entry))
     end
@@ -23,9 +23,10 @@ function Base.read(sdf::SDFFile, entries...)
 end
 
 Base.keys(sdf::SDFFile) = keys(sdf.blocks)
+
 function Base.getindex(sdf::SDFFile, idx::Symbol)
     open(sdf.name) do f
-        read_scalar_field(f, sdf.blocks, idx)
+        read_entry(f, sdf.blocks, idx)
     end
 end
 

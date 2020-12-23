@@ -112,7 +112,7 @@ write only the X or X and Y arrays respectively.
 struct PlainMeshBlockHeader{T,N} <: AbstractBlockHeader{T,N}
     base_header::BlockHeader{T}
 
-    mults::Array{Float64,1}
+    mults::NTuple{N,Float64}
     labels::NTuple{N,String}
     units::NTuple{N,String}
     geometry::Geometry
@@ -163,7 +163,7 @@ and for a 2d simulation only the x and y arrays are written.
 struct PointMeshBlockHeader{T,N} <: AbstractBlockHeader{T,N}
     base_header::BlockHeader{T,N}
 
-    mults::Array{Float64,1}
+    mults::NTuple{N,Float64}
     labels::NTuple{N,String}
     units::NTuple{N,String}
     geometry::Geometry

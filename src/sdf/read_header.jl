@@ -123,11 +123,12 @@ function read_variable_common!(f)
 end
 
 function read_mesh_common!(f, n)
-    mults = Array{Float64, 1}(undef, n)
     minval = Array{Float64, 1}(undef, n)
     maxval = Array{Float64, 1}(undef, n)
 
-    read!(f, mults)
+    mults = ntuple(n) do i
+        read(f, Float64)
+    end
 
     labels = ntuple(n) do i
         simple_str(read(f, ID_LENGTH))

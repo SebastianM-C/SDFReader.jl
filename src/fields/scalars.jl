@@ -1,21 +1,21 @@
-struct ScalarField{N,T,G} <: AbstractField
-    data::AbstractArray{T,N}
-    grid::NTuple{N,G}
-end
-
-function read_scalar_field(file, blocks, name)
+function read_entry(file, blocks, name)
     data_block = getproperty(blocks, name)
     data = read(file, data_block)
     mesh_block = getproperty(blocks, Symbol(data_block.mesh_id))
     grid = make_grid(mesh_block, data_block, file)
 
-    ScalarField(data, grid)
+    store_entry(data_block, data, grid)
 end
 
-make_grid(mesh_block::T, data_block, file) where T =
-    make_grid(isgrid(T), mesh_block, data_block, file)
+store_entry(::T, data, grid) where T =
+    store_entry(discretization_type(T), data, grid)
+store_entry(::StaggeredField, data, grid) = ScalarField(data, grid)
+store_entry(::Variable, data, grid) = ScalarVariable(data, grid)
 
-function make_grid(::Mesh, mesh_block, data_block, file)
+make_grid(mesh_block::T, data_block, file) where T =
+    make_grid(discretization_type(T), mesh_block, data_block, file)
+
+function make_grid(::StaggeredField, mesh_block, data_block, file)
     units = get_units(mesh_block.units)
     minval = mesh_block.minval .* units
     maxval = mesh_block.maxval .* units
@@ -101,15 +101,3 @@ function apply_stagger(grid, ::Val{EdgeZ})
 end
 
 apply_stagger(grid, ::Val{Vertex}) = grid
-
-
-
-# for f in (:+, :-, :*, :/)
-#     @eval function (Base.$f)(f1::AbstractQuantity, f2::AbstractQuantity)
-#         Field(($f).(f1.data, f2.data), f1.grid)
-#     end
-# end
-
-# function LinearAlgebra.cross(f1::AbstractQuantity, f2::AbstractQuantity)
-#     Field(cross.(f1.data, f2.data), f1.grid)
-# end
