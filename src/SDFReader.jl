@@ -3,7 +3,9 @@ module SDFReader
 export SDF, file_summary,
     read_simulation, EPOCHSimulation, SDFFile,
     ScalarField, VectorField, ScalarVariable, VectorVariable,
-    get_parameter, get_time
+    dimensionaltiy, field,
+    get_parameter, get_time,
+    to_cylindrical
 
 using Unitful
 using PhysicalConstants.CODATA2018: c_0, ε_0, μ_0, m_e, e
@@ -17,8 +19,7 @@ include("traits.jl")
 include("units.jl")
 include("utils.jl")
 include("fields/fields.jl")
-include("fields/scalars.jl")
-include("fields/vector.jl")
+include("fields/read_scalar.jl")
 include("input/parser.jl")
 include("api/simulation.jl")
 
