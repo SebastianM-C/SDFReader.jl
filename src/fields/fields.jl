@@ -21,6 +21,7 @@ include("units.jl")
 include("algebra.jl")
 include("transformations.jl")
 include("subset.jl")
+include("recipes.jl")
 
 # Indexing
 Base.@propagate_inbounds Base.getindex(f::AbstractField, i::Int) = f.data[i]
