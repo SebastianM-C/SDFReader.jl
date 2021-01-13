@@ -32,40 +32,46 @@ With the `keys` function you can observe what data was saved in the
 simulation. The symbols correspond to the names used for the
 saved variables. Note that some identifiers used by EPOCH, such
 as the ones for species properties are not valid julia symbols
-(such as `px/electron`), so they must be written like `Symbol("px/electron")`.
+(such as `px/electron`), so instead you can use strings (e.g. `"px/electron"`).
 
 ```julia
 keys(sim[1])
 ```
 
-In order to read the data for scalar field quantities such as `:ex` or `Symbol("px/electron")`,
+In order to read the data for scalar field quantities such as `:ex` or `"px/electron"`,
 you can simply index into the file
 
 ```julia
 file = sim[1]
 Ex = file[:ex]
 ```
-The returned object will have a `.data` and `.grid` fields which will contain
-arrays that store the values (with units
-via [Unitful.jl](https://github.com/PainterQubits/Unitful.jl/)) and the corresponding coordinate
-values.
+The returned object will be a `ScalarField` (or `ScalarVariable` for the components
+of particle variables such as `"px/electron"`) and will contain the information
+regarding the data (with units via [Unitful.jl](https://github.com/PainterQubits/Unitful.jl/))
+and the corresponding coordinate values.
+These objects are `AbstractArrays` and via indexing you can access the stored values.
 
-If you need more direct acces to the data, you can use the `read` function
-as follows
+You can use broadcasting to compute derived quantities. For example, to compute the
+x component of the angular momentum you can simply use
 ```julia
-w = read(file, Symbol("weight/electron"))
-Ex, Ey = read(file, :ex, :ey)
+function compute_Lx(file)
+    w, r, py, pz = file["weight/electron",
+                        "grid/electron",
+                        "py/electron",
+                        "pz/electron"]
+
+    y = r[2]
+    z = r[3]
+    Lx = @. w * (y * pz - z * py)
+end
 ```
-Note that in this case the corresponding grids for the fields (e.g. `:ex` and `:ey` in the above)
-are not automatically created. Thus this way of acessing the data is recommended only
-in more advanced cases.
 
 You can also acces the (simulation) time corresponding to a file with
 ```julia
 get_time(file)
 ```
 and also the parameters from the `input.deck` file with `get_parameter`.
-The `input.deck` parser only supports simple `key=value` expressions.
+The `input.deck` parser only supports simple `key=value` expressions (no arithmetic operations or function calls).
 You can also access nested values by providing a second argument.
 ```julia
 nx = get_parameter(file, :nx)
