@@ -19,6 +19,8 @@ include("traits.jl")
 include("units.jl")
 include("utils.jl")
 include("fields/fields.jl")
+using .SimpleFields
+
 include("fields/read_scalar.jl")
 include("input/parser.jl")
 include("api/simulation.jl")

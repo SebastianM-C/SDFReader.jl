@@ -25,5 +25,5 @@ function to_cylindrical(::ScalarQuantity, f, orientation)
     t = to_cylindrical(Val(orientation))
     transformed_grid = t.(dense_grid)
 
-    field(f, f.data, transformed_grid)
+    parameterless_type(f)(f.data, transformed_grid)
 end
