@@ -86,7 +86,8 @@ function parse_input(file)
     for k in keys(global_p)
         str = string(k)
         if startswith(str, "species")
-            push!!(all_species, split(str, '_', limit=2)[2])
+            @debug "Processing species $str"
+            all_species = push!!(all_species, split(str, '_', limit=2)[2])
         end
     end
     push!!(global_p, :species=>all_species)
@@ -151,7 +152,7 @@ function replace_existing_params(str, existing_params)
             else
                 new_val = string(known_val)
             end
-            new_str = replace(new_str, val=>"($new_val)")
+            new_str = replace(new_str, r"\b"*val*r"\b"=>"($new_val)")
             @debug "Updated string with new value: $new_str"
         end
     end
@@ -159,22 +160,22 @@ function replace_existing_params(str, existing_params)
 end
 
 const input_deck_constants = Dict(
-    "T" => "true",
-    "F" => "false",
-    "qe" => "q",
-    "epsilon0" => "ϵ0",
-    "mu0" => "μ0",
-    "ev" => "eV",
-    "kev" => "keV",
-    "mev" => "MeV",
-    "micron" => "μm",
-    "milli" => "1e-3",
-    "micro" => "1e-6",
-    "nano" => "1e-9",
-    "pico" => "1e-12",
-    "femto" => "1e-15",
-    "atto" => "1e-18",
-    "cc" => "1e-6",
+    r"\bT\b" => "true",
+    r"\bF\b" => "false",
+    r"\bqe\b" => "q",
+    r"\bepsilon0\b" => "ϵ0",
+    r"\bmu0\b" => "μ0",
+    r"\bev\b" => "eV",
+    r"\bkev\b" => "keV",
+    r"\bmev\b" => "MeV",
+    r"\bmicron\b" => "μm",
+    r"\bmilli\b" => "1e-3",
+    r"\bmicro\b" => "1e-6",
+    r"\bnano\b" => "1e-9",
+    r"\bpico\b" => "1e-12",
+    r"\bfemto\b" => "1e-15",
+    r"\batto\b" => "1e-18",
+    r"\bcc\b" => "1e-6",
 )
 
 const input_unitful_entries = Dict(
@@ -189,6 +190,9 @@ const input_unitful_entries = Dict(
     :mass => m_e,
     :number_density => u"m^-3",
     :temperature => u"K",
+    :temp => u"K",
+    :temperature_ev => u"eV",
+    :temp_ev => u"eV",
     :amp => u"V/m",
     :intensity_w_cm2 => u"W/cm^2",
     :omega => u"rad/s",
