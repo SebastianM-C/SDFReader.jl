@@ -7,7 +7,7 @@ include("output.jl")
 function parse_input(file)
     inside_block = false
     block_type = Symbol()
-    global_p = NamedTuple()
+    global_p = Dict{Symbol,Any}()
     current_p = NamedTuple()
     prev_line = ""
 
@@ -58,7 +58,13 @@ function parse_input(file)
             end
 
             @debug "Splitting line $ln"
-            key, value = split(ln, '=')
+            if occursin('=', ln)
+                key, value = split(ln, '=')
+            elseif occursin(':', ln)
+                key, value = split(ln, ':')
+            else
+                @error "Unable to split key value pair on line $ln"
+            end
             key = strip(key)
             value = strip(value)
 
@@ -80,7 +86,8 @@ function parse_input(file)
     for k in keys(global_p)
         str = string(k)
         if startswith(str, "species")
-            push!!(all_species, split(str, '_', limit=2)[2])
+            @debug "Processing species $str"
+            all_species = push!!(all_species, split(str, '_', limit=2)[2])
         end
     end
     push!!(global_p, :species=>all_species)
@@ -91,6 +98,10 @@ end
 function process_value(key, val, global_p, current_p, block_parameters)
     k = Symbol(key)
     v = parse_value(k, val, merge!!(global_p, current_p))
+    if haskey(current_p, k)
+        @debug "Key $k already exists in $current_p. Replacing with $v."
+        current_p = delete!!(current_p, k)
+    end
     current_p = push!!(current_p, k=>v)
     if is_global(key, block_parameters)
         global_p = push!!(global_p, k=>v)
@@ -103,8 +114,8 @@ function is_global(key, block_p)
 end
 
 function parse_value(k, v, existing_params)
-    str = replace_existing_params(v, existing_params)
-    @debug "Trying to parse units in $str"
+    str, val_unit = replace_existing_params(v, existing_params)
+    @debug "Trying to parse units in $str. Units from replacement: $val_unit"
     val = try
         uparse(str)
     catch err
@@ -113,7 +124,11 @@ function parse_value(k, v, existing_params)
     end
     @debug "Tried to parse $k with unitful and got $val"
     # try to auto-add units
-    if !isa(val, String) && k in keys(input_unitful_entries) && unit(val) == NoUnits
+    if !isa(val, String) &&
+            k in keys(input_unitful_entries) &&
+            unit(val) == NoUnits &&
+            val_unit == NoUnits
+
         val *= input_unitful_entries[k]
         @debug "Added unit: $val"
     end
@@ -122,8 +137,8 @@ function parse_value(k, v, existing_params)
         @debug "Could not fully parse $val."
         v
     else
-        @debug "Successfully parsed $val."
-        val
+        @debug "Successfully parsed $val. Added additional units $val_unit"
+        val * val_unit
     end
 end
 
@@ -131,44 +146,46 @@ function replace_existing_params(str, existing_params)
     # simple replacements with previously defined keys
     @debug "Looking for known values in $str"
     new_str = deepcopy(str)
+    val_units = NoUnits
     for m in eachmatch(r"\w+\d?", str)
         val = m.match
         if val in string.(keys(existing_params))
-            known_val = getproperty(existing_params, Symbol(val))
+            known_val = getindex(existing_params, Symbol(val))
             if known_val isa String
                 continue
             end
+            val_units = unit(known_val)
             @debug "Replacing $val with $known_val"
             # Workaround https://github.com/PainterQubits/Unitful.jl/issues/391
-            if unit(known_val) ≠ NoUnits
+            if val_units ≠ NoUnits
                 new_val = string(ustrip(known_val))
             else
                 new_val = string(known_val)
             end
-            new_str = replace(new_str, val=>"($new_val)")
+            new_str = replace(new_str, r"\b"*val*r"\b"=>"($new_val)")
             @debug "Updated string with new value: $new_str"
         end
     end
-    new_str
+    new_str, val_units
 end
 
 const input_deck_constants = Dict(
-    "T" => "true",
-    "F" => "false",
-    "qe" => "q",
-    "epsilon0" => "ϵ0",
-    "mu0" => "μ0",
-    "ev" => "eV",
-    "kev" => "keV",
-    "mev" => "MeV",
-    "micron" => "μm",
-    "milli" => "1e-3",
-    "micro" => "1e-6",
-    "nano" => "1e-9",
-    "pico" => "1e-12",
-    "femto" => "1e-15",
-    "atto" => "1e-18",
-    "cc" => "1e-6",
+    r"\bT\b" => "true",
+    r"\bF\b" => "false",
+    r"\bqe\b" => "q",
+    r"\bepsilon0\b" => "ϵ0",
+    r"\bmu0\b" => "μ0",
+    r"\bev\b" => "eV",
+    r"\bkev\b" => "keV",
+    r"\bmev\b" => "MeV",
+    r"\bmicron\b" => "μm",
+    r"\bmilli\b" => "1e-3",
+    r"\bmicro\b" => "1e-6",
+    r"\bnano\b" => "1e-9",
+    r"\bpico\b" => "1e-12",
+    r"\bfemto\b" => "1e-15",
+    r"\batto\b" => "1e-18",
+    r"\bcc\b" => "1e-6",
 )
 
 const input_unitful_entries = Dict(
@@ -183,6 +200,9 @@ const input_unitful_entries = Dict(
     :mass => m_e,
     :number_density => u"m^-3",
     :temperature => u"K",
+    :temp => u"K",
+    :temperature_ev => u"eV",
+    :temp_ev => u"eV",
     :amp => u"V/m",
     :intensity_w_cm2 => u"W/cm^2",
     :omega => u"rad/s",

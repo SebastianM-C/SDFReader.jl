@@ -1,18 +1,12 @@
-struct VectorField{N,T,G} <: AbstractField{N}
-    data::T
+struct VectorField{N,T,D<:AbstractArray{T,N},G} <: AbstractField{T,N}
+    data::D
     grid::G
 end
 
-VectorField(data::T, grid::G) where {T <: AbstractArray{A,N} where {A,N}, G} =
-    VectorField{dimensionaltiy(G), T, G}(data, grid)
-
-struct VectorVariable{N,T,G} <: AbstractField{N}
+struct VectorVariable{N,T,D<:AbstractArray{T,N},G} <: AbstractField{T,N}
     data::T
     grid::G
 end
-
-VectorVariable(data::T, grid::G) where {T <: AbstractArray{A,N} where {A,N}, G} =
-    VectorVariable{dimensionaltiy(G), T, G}(data, grid)
 
 function VectorField(x::ScalarField)
     data = map(i->SVector{1}(x.data[i]), eachindex(x.data))
@@ -52,6 +46,16 @@ function VectorVariable(x::ScalarVariable{N,T,G}, y::ScalarVariable{N,T,G}, z::S
     data = map(i->SVector{3}(x.data[i], y.data[i], z.data[i]), eachindex(x.data))
 
     VectorVariable(data, x.grid)
+end
+
+function VectorVariable(components::NTuple{N,T}) where {N,T}
+    data = map(i->begin
+            cs = map(c->getindex(c, i), components)
+            SVector{N}(cs...)
+        end,
+    eachindex(first(components)))
+
+    VectorField(data, data)
 end
 
 # Can we make this work with GG?

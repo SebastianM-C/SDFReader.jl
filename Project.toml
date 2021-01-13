@@ -1,9 +1,11 @@
 name = "SDFReader"
 uuid = "bd0b56a1-724b-4db5-9cfb-6781c02e0e49"
 authors = ["Sebastian Micluța-Câmpeanu <m.c.sebastian95@gmail.com>"]
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
+AbstractPlotting = "537997a7-5e4e-5d89-9595-2241ea00577e"
+ArrayInterface = "4fba245c-0d91-5ea0-9b3e-6abc04ee57a9"
 BangBang = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
 CoordinateTransformations = "150eb455-5306-5404-9cee-2592286d6298"
 ImageTransformations = "02fcd773-0e25-5acc-982a-7f6622650795"

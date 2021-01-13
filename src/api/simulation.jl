@@ -28,7 +28,8 @@ function read_simulation(dir)
     EPOCHSimulation(dir, files, p)
 end
 
-get_parameter(sim::EPOCHSimulation, p::Symbol) = getproperty(sim.param, p)
+get_parameter(sim::EPOCHSimulation, p::Symbol) = getindex(sim.param, p)
+get_parameter(sim::EPOCHSimulation, p::Symbol, c::Symbol) = getindex(get_parameter(sim, p), c)
 
 # Indexing
 Base.getindex(sim::EPOCHSimulation, i::Int) = sim.files[i]
