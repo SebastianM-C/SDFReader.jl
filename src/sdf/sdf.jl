@@ -1,7 +1,5 @@
 module SDF
 
-using BangBang
-
 export header, Header,
     file_summary,
     Stagger, CellCentre, FaceX, FaceY, FaceZ, EdgeX, EdgeY, EdgeZ, Vertex,
@@ -89,12 +87,12 @@ file_summary(filename) = open(file_summary, filename)[2]
 
 function file_summary(f::IOStream)
     h = header(f)
-    blocks = NamedTuple()
+    blocks = Dict{Symbol,AbstractBlockHeader}()
 
     block_start = h.summary_location
     for i in Base.OneTo(h.nblocks)
         block = BlockHeader(f, block_start, h.string_length, h.block_header_length)
-        blocks = push!!(blocks, Symbol(block.id) => read(f, block))
+        blocks = push!(blocks, Symbol(block.id) => read(f, block))
         block_start = block.next_block_location
     end
 
