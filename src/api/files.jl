@@ -12,13 +12,13 @@ end
 
 function Base.read(sdf::SDFFile, entry::Symbol)
     open(sdf.name) do f
-        read(f, getproperty(sdf.blocks, entry))
+        read(f, getindex(sdf.blocks, entry))
     end
 end
 
 function Base.read(sdf::SDFFile, entries...)
     open(sdf.name) do f
-        asyncmap(i->read(f, getproperty(sdf.blocks,i)), entries)
+        asyncmap(i->read(f, getindex(sdf.blocks,i)), entries)
     end
 end
 
