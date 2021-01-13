@@ -58,7 +58,13 @@ function parse_input(file)
             end
 
             @debug "Splitting line $ln"
-            key, value = split(ln, '=')
+            if occursin('=', ln)
+                key, value = split(ln, '=')
+            elseif occursin(':', ln)
+                key, value = split(ln, ':')
+            else
+                @error "Unable to split key value pair on line $ln"
+            end
             key = strip(key)
             value = strip(value)
 
