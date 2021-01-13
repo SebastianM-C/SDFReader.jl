@@ -1,6 +1,7 @@
 module SimpleFields
 
-export ScalarField, ScalarVariable, VectorField, VectorVariable
+export ScalarField, ScalarVariable, VectorField, VectorVariable,
+    subsample, slice
 
 using LinearAlgebra
 using CoordinateTransformations
