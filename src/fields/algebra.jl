@@ -1,14 +1,3 @@
-struct ScalarQuantity end
-struct VectorQuantity end
-
-for f in (:ScalarField, :ScalarVariable)
-    @eval scalarness(::$f) = ScalarQuantity()
-end
-
-for f in (:VectorField, :VectorVariable)
-    @eval scalarness(::$f) = VectorQuantity()
-end
-
 for f in (:+, :-,)
     @eval function (Base.$f)(f1::AbstractField, f2::AbstractField)
         @assert f1.grid == f2.grid "Incompatible grids"
