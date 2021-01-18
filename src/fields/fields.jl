@@ -1,13 +1,15 @@
 module SimpleFields
 
 export ScalarField, ScalarVariable, VectorField, VectorVariable,
-    subsample, slice
+    subsample, slice,
+    scalarness, domain_type, domain_discretization
 
 using LinearAlgebra
 using CoordinateTransformations
 using ImageTransformations
 using StaticArrays
 using RecursiveArrayTools
+using IntervalSets
 using ArrayInterface: parameterless_type
 using Unitful
 using Unitful: Units
@@ -17,6 +19,7 @@ abstract type AbstractField{T,N} <: AbstractArray{T,N} end
 
 include("scalar.jl")
 include("vector.jl")
+include("traits.jl")
 include("units.jl")
 include("algebra.jl")
 include("transformations.jl")
@@ -76,7 +79,7 @@ Base.show(io::IO, ::MIME"text/plain", ::ScalarQuantity) = print(io, "Scalar")
 Base.show(io::IO, ::MIME"text/plain", ::VectorQuantity) = print(io, "Vector")
 
 function Base.show(io::IO, m::MIME"text/plain", f::AbstractField)
-    show(io, m, scalarness(f))
+    show(io, m, scalarness(typeof(f)))
     data_units = unit(recursive_bottom_eltype(f.data))
     grid_units = unit(recursive_bottom_eltype(f.grid))
     print(io, " with data in " * string(data_units) * ": \n")

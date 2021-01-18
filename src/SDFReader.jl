@@ -11,6 +11,7 @@ using Unitful
 using PhysicalConstants.CODATA2018: c_0, ε_0, μ_0, m_e, e
 using Statistics, StatsBase
 using BangBang
+using Transducers, ThreadsX
 
 include("sdf/sdf.jl")
 using .SDF

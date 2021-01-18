@@ -111,3 +111,4 @@ get_parameter(sdf::SDFFile, p::Symbol) = getindex(sdf.param[], p)
 get_parameter(sdf::SDFFile, p::Symbol, c::Symbol) = getindex(get_parameter(sdf, p), c)
 
 get_time(sdf::SDFFile) = sdf.header.time * u"s"
+get_npart(sdf::SDFFile, species) = sdf.blocks["px/"*species].np
