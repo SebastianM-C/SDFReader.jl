@@ -40,3 +40,18 @@ Base.lastindex(sim::EPOCHSimulation) = lastindex(sim.files)
 Base.iterate(sim::EPOCHSimulation, state...) = iterate(sim.files, state...)
 Base.eltype(::Type{EPOCHSimulation}) = SDFFile
 Base.length(sim::EPOCHSimulation) = length(sim.files)
+
+# Statistics
+function Statistics.mean(f::Function, sim::EPOCHSimulation; cond=x->true)
+    ThreadsX.map(sim.files) do file
+        println("Loading $(file.name)")
+        qunatity = f(file)
+        z = zero(eltype(qunatity))
+        (qunatity ./ length(qunatity)) |>
+            Filter(cond) |>
+            foldxt(+, simd=true, init=z)
+    end
+end
+
+# FileTrees
+# FileTrees._maketree(node::SDFFile) = File(nothing, basename(node.name), node)
