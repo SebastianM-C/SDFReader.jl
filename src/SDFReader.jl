@@ -1,30 +1,60 @@
 module SDFReader
 
-export SDF, file_summary,
-    read_simulation, EPOCHSimulation, SDFFile,
-    ScalarField, VectorField, ScalarVariable, VectorVariable,
-    dimensionaltiy, field,
-    get_parameter, get_time,
-    to_cylindrical
+export header, Header,
+    file_summary,
+    Stagger, CellCentre, FaceX, FaceY, FaceZ, EdgeX, EdgeY, EdgeZ, Vertex,
+    AbstractBlockHeader,
+    PlainVariableBlockHeader,
+    PointVariableBlockHeader,
+    PlainMeshBlockHeader,
+    PointMeshBlockHeader
 
 using Unitful
-using PhysicalConstants.CODATA2018: c_0, ε_0, μ_0, m_e, e
-using Statistics, StatsBase
-using BangBang
-using Transducers, ThreadsX
 
-include("sdf/sdf.jl")
-using .SDF
-
-include("traits.jl")
+include("constants.jl")
+include("sdf_header.jl")
+include("read_header.jl")
+include("read_data.jl")
 include("units.jl")
 include("utils.jl")
-include("fields/fields.jl")
-using .SimpleFields
 
-include("fields/read_scalar.jl")
-include("input/parser.jl")
-include("api/simulation.jl")
+@generated function typemap(data_type::Val{N}) :: DataType where N
+    if N == DATATYPE_NULL
+        Nothing
+    elseif N == DATATYPE_INTEGER4
+        Int32
+    elseif N == DATATYPE_INTEGER8
+        Int64
+    elseif N == DATATYPE_REAL4
+        Float32
+    elseif N == DATATYPE_REAL8
+        Float64
+    elseif N == DATATYPE_REAL16
+        Nothing # unsupported
+    elseif N == DATATYPE_CHARACTER
+        Char
+    elseif N == DATATYPE_LOGICAL
+        Bool
+    else
+        Nothing
+    end
+end
+
+file_summary(filename) = open(file_summary, filename)[2]
+
+function file_summary(f::IOStream)
+    h = header(f)
+    blocks = Dict{Symbol,AbstractBlockHeader}()
+
+    block_start = h.summary_location
+    for i in Base.OneTo(h.nblocks)
+        block = BlockHeader(f, block_start, h.string_length, h.block_header_length)
+        blocks = push!(blocks, Symbol(block.id) => read(f, block))
+        block_start = block.next_block_location
+    end
+
+    h, blocks
+end
 
 function Base.read(f, block::AbstractBlockHeader{T, D}) where {T, D}
     raw_data = read!(f, block)
