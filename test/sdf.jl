@@ -5,7 +5,7 @@
 
     @testset "Units" begin
         for (key, block) in pairs(blocks)
-            if @compat hasfield(typeof(block), :units)
+            if hasfield(typeof(block), :units)
                 @test block.units == units[string(key)]
             end
         end
