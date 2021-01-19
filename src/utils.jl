@@ -1,6 +1,3 @@
 function get_normalization(block::T) where T
-    get_normalization(data_kind(T), block)
+    hasproperty(block, :mult) ? block.mult : block.mults
 end
-
-get_normalization(::Data, block) = block.mult
-get_normalization(::Grid, block) = block.mults
