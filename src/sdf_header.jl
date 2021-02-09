@@ -53,6 +53,8 @@ end
 
 abstract type AbstractBlockHeader{T,N} end
 
+Base.ndims(::AbstractBlockHeader{T,N}) where {T,N} = N
+
 struct ConstantBlockHeader{T,N} <: AbstractBlockHeader{T,N}
     base_header::BlockHeader{T,N}
     val::T
