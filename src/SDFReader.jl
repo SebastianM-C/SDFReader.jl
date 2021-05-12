@@ -2,6 +2,7 @@ module SDFReader
 
 export header, Header,
     file_summary,
+    labels,
     Stagger, CellCentre, FaceX, FaceY, FaceZ, EdgeX, EdgeY, EdgeZ, Vertex,
     AbstractBlockHeader,
     PlainVariableBlockHeader,
