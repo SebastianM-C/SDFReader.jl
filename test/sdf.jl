@@ -21,4 +21,9 @@
             end
         end
     end
+
+    @testset "Utilities" begin
+        @test nameof(blocks[:ex]) == "Electric Field/Ex"
+        @test labels(blocks[:grid]) == ("X", "Y", "Z")
+    end
 end
