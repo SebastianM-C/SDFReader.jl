@@ -25,5 +25,6 @@
     @testset "Utilities" begin
         @test nameof(blocks[:ex]) == "Electric Field/Ex"
         @test labels(blocks[:grid]) == ("X", "Y", "Z")
+        @test labels(blocks[Symbol("grid/electron")]) == ("X", "Y", "Z")
     end
 end
