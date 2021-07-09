@@ -1,7 +1,3 @@
-function block2cachetype(block)
-    Array{eltype(block), ndims(block)}
-end
-
 skipcache(::Any) = false
 skipcache(::ConstantBlockHeader) = true
 skipcache(::RunInfoBlockHeader) = true
