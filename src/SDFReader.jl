@@ -61,13 +61,9 @@ end
 
 function Base.read(f, block::AbstractBlockHeader{T, D}) where {T, D}
     raw_data = read!(f, block)
+    apply_normalization!(raw_data, block)
 
-    𝟙 = one(eltype(block))
-    if get_normalization(block) ≠ 𝟙
-        raw_data .*= get_normalization(block)
-    end
-
-    return reinterpret(typeof(𝟙*get_units(block.units)), raw_data)
+    return add_units(raw_data, block)
 end
 
 end # module
