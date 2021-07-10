@@ -2,6 +2,7 @@ module SDFReader
 
 export header, Header,
     file_summary,
+    cached_read,
     labels,
     Stagger, CellCentre, FaceX, FaceY, FaceZ, EdgeX, EdgeY, EdgeZ, Vertex,
     AbstractBlockHeader,
@@ -16,6 +17,7 @@ include("constants.jl")
 include("sdf_header.jl")
 include("read_header.jl")
 include("read_data.jl")
+include("cache.jl")
 include("units.jl")
 include("utils.jl")
 
@@ -59,7 +61,9 @@ end
 
 function Base.read(f, block::AbstractBlockHeader{T, D}) where {T, D}
     raw_data = read!(f, block)
-    data = raw_data .* get_normalization(block) .* get_units(block.units)
+    apply_normalization!(raw_data, block)
+
+    return add_units(raw_data, block)
 end
 
 end # module
