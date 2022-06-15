@@ -9,9 +9,11 @@ export header, Header,
     PlainVariableBlockHeader,
     PointVariableBlockHeader,
     PlainMeshBlockHeader,
-    PointMeshBlockHeader
+    PointMeshBlockHeader,
+    SDFVariable, SDFMesh
 
 using Unitful
+using DiskArrays
 
 include("constants.jl")
 include("sdf_header.jl")
@@ -20,6 +22,7 @@ include("read_data.jl")
 include("cache.jl")
 include("units.jl")
 include("utils.jl")
+include("read_chunk.jl")
 
 @generated function typemap(data_type::Val{N}) :: DataType where N
     if N == DATATYPE_NULL
@@ -59,7 +62,7 @@ function file_summary(f::IOStream)
     h, blocks
 end
 
-function Base.read(f, block::AbstractBlockHeader{T, D}) where {T, D}
+function Base.read(f::IO, block::AbstractBlockHeader{T, D}) where {T, D}
     raw_data = read!(f, block)
     apply_normalization!(raw_data, block)
 
