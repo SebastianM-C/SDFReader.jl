@@ -42,7 +42,7 @@ function BlockHeader(f::IOStream, start, string_length, header_length)
     d_type = typemap(Val(data_type))
     seek(f, start + header_length)
 
-    BlockHeader{d_type, Int(n_dims), block_type}(
+    BlockHeader{d_type,Int(n_dims),block_type}(
         next_block_location,
         data_location,
         id,
@@ -54,7 +54,7 @@ end
 abstract type AbstractBlockHeader{T,N} end
 
 Base.ndims(::AbstractBlockHeader{T,N}) where {T,N} = N
-Base.eltype(::AbstractBlockHeader{T}) where T = T
+Base.eltype(::AbstractBlockHeader{T}) where {T} = T
 Base.nameof(block::BlockHeader) = block.name
 
 struct ConstantBlockHeader{T,N} <: AbstractBlockHeader{T,N}
@@ -67,10 +67,10 @@ struct CPUSplitBlockHeader{T,N} <: AbstractBlockHeader{T,N}
 end
 
 @enum Geometry begin
-    Null        = 0
-    Cartesian   = 1
+    Null = 0
+    Cartesian = 1
     Cylindrical = 2
-    Spherical   = 3
+    Spherical = 3
 end
 
 @doc """
@@ -125,6 +125,12 @@ struct PlainMeshBlockHeader{T,N} <: AbstractBlockHeader{T,N}
     dims::Array{Int32,1}
 end
 
+function Base.size(block::PlainMeshBlockHeader{T,N}) where {T,N}
+    ntuple(Val(N)) do i
+        block.dims[i]
+    end
+end
+
 @doc """
     PointMeshBlockHeader{T,N}
 
@@ -176,15 +182,17 @@ struct PointMeshBlockHeader{T,N} <: AbstractBlockHeader{T,N}
     np::Int64
 end
 
+Base.size(block::PointMeshBlockHeader) = (block.np,)
+
 @enum Stagger begin
     CellCentre = 0
-    FaceX      = 1
-    FaceY      = 2
-    FaceZ      = 4
-    EdgeX      = 6
-    EdgeY      = 5
-    EdgeZ      = 3
-    Vertex     = 7
+    FaceX = 1
+    FaceY = 2
+    FaceZ = 4
+    EdgeX = 6
+    EdgeY = 5
+    EdgeZ = 3
+    Vertex = 7
 end
 
 @doc """
@@ -244,6 +252,8 @@ struct PlainVariableBlockHeader{T,N} <: AbstractBlockHeader{T,N}
     stagger::Stagger
 end
 
+Base.size(block::PlainVariableBlockHeader) = block.dims
+
 @doc """
     PointVariableBlockHeader{T,N}
 
@@ -270,6 +280,8 @@ struct PointVariableBlockHeader{T,N} <: AbstractBlockHeader{T,N}
     mesh_id::String
     np::Int64
 end
+
+Base.size(block::PointVariableBlockHeader) = (block.np, )
 
 struct RunInfoBlockHeader{T,N} <: AbstractBlockHeader{T,N}
     base_header::BlockHeader{T,N}
