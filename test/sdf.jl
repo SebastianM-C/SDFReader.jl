@@ -1,8 +1,13 @@
+using SDFReader
+using Serialization
 using LRUCache
+using Test
+
+fn = joinpath(@__DIR__, "0002.sdf")
+ref_fn = joinpath(@__DIR__, "0002.jls")
+v_header, data, grids, units = open(deserialize, ref_fn)
 
 @testset "SDF" begin
-    include("sdf_header.jl")
-    fn = "0002.sdf"
     blocks = file_summary(fn)
 
     @testset "Units" begin
