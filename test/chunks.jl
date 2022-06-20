@@ -1,5 +1,6 @@
 using SDFReader
 using Serialization
+using DiskArrays: haschunks, Chunked
 using Test
 
 fn = joinpath(@__DIR__, "0002.sdf")
@@ -19,6 +20,8 @@ variables = setdiff(keys(blocks), unsupported, meshes)
             sda = SDFVariable(f, block)
             data = read!(f, block)
 
+            @test haschunks(sda) isa Chunked
+
             @test sda[1, 1, 1] == data[1, 1, 1]
             @test sda[2, 1, 1] == data[2, 1, 1]
             @test sda[1:10, 1, 1] == data[1:10, 1, 1]
@@ -36,6 +39,8 @@ end
             @testset "$key with axis $axis" for axis in 1:3
                 sda = SDFMesh(f, block, axis)
                 data = read!(f, block)[axis]
+
+                @test haschunks(sda) isa Chunked
 
                 @test sda[1] == data[1]
                 @test sda[2:3] == data[2:3]
