@@ -131,6 +131,8 @@ function Base.size(block::PlainMeshBlockHeader{T,N}) where {T,N}
     end
 end
 
+Base.size(block::PlainMeshBlockHeader, i::Int) = block.dims[i]
+
 @doc """
     PointMeshBlockHeader{T,N}
 
@@ -182,7 +184,8 @@ struct PointMeshBlockHeader{T,N} <: AbstractBlockHeader{T,N}
     np::Int64
 end
 
-Base.size(block::PointMeshBlockHeader) = (block.np,)
+Base.size(block::PointMeshBlockHeader{T,D}) where {T,D} = ntuple(_ -> block.np, Val(D))
+Base.size(block::PointMeshBlockHeader, ::Int) = block.np
 
 @enum Stagger begin
     CellCentre = 0
@@ -253,6 +256,7 @@ struct PlainVariableBlockHeader{T,N} <: AbstractBlockHeader{T,N}
 end
 
 Base.size(block::PlainVariableBlockHeader) = block.dims
+Base.size(block::PlainVariableBlockHeader, i::Int) = block.dims[i]
 
 @doc """
     PointVariableBlockHeader{T,N}
@@ -281,7 +285,7 @@ struct PointVariableBlockHeader{T,N} <: AbstractBlockHeader{T,N}
     np::Int64
 end
 
-Base.size(block::PointVariableBlockHeader) = (block.np, )
+Base.size(block::PointVariableBlockHeader) = (block.np,)
 
 struct RunInfoBlockHeader{T,N} <: AbstractBlockHeader{T,N}
     base_header::BlockHeader{T,N}

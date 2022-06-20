@@ -23,7 +23,7 @@ function SDFMesh{T}(file::S, block::B, axis, chunksize::NTuple{N,Int}) where {T,
     SDFMesh{T,N,B,S}(file, block, axis, chunksize)
 end
 
-function SDFMesh(file::IOStream, block::AbstractBlockHeader, axis; chunksize=Int.(size(block)))
+function SDFMesh(file::IOStream, block::AbstractBlockHeader, axis; chunksize=(Int(size(block, axis)),))
     SDFMesh{eltype(block)}(file, block, axis, chunksize)
 end
 
@@ -31,7 +31,7 @@ haschunks(::SDFVariable) = Chunked()
 haschunks(::SDFMesh) = Chunked()
 
 Base.size(a::SDFVariable) = size(a.block)
-Base.size(a::SDFMesh) = size(a.block)
+Base.size(a::SDFMesh) = (size(a.block)[a.axis],)
 
 function check_continuous(linear_idxs)
     vec_idxs = vec(linear_idxs)
@@ -69,7 +69,7 @@ function DiskArrays.readblock!(a::SDFVariable, aout, idxs::AbstractUnitRange...)
     readchunk!(stream, aout, linear_idxs, eltype(block), offset)
 end
 
-function DiskArrays.readblock!(a::SDFMesh{T}, aout, idxs::AbstractUnitRange) where T
+function DiskArrays.readblock!(a::SDFMesh{T,N,B}, aout, idxs::AbstractUnitRange) where {T,N,B<:PointMeshBlockHeader}
     stream, block = a.stream, a.block
     offset = get_offset(block)
     axis = a.axis
