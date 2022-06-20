@@ -1,7 +1,7 @@
 name = "SDFReader"
 uuid = "bd0b56a1-724b-4db5-9cfb-6781c02e0e49"
 authors = ["Sebastian Micluța-Câmpeanu <m.c.sebastian95@gmail.com>"]
-version = "0.3.4"
+version = "0.4.0"
 
 [deps]
 DiskArrays = "3c3547ce-8d99-4f5e-a174-61eb10b00ae3"
