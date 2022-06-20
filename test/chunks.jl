@@ -36,7 +36,6 @@ end
             @testset "$key with axis $axis" for axis in 1:3
                 sda = SDFMesh(f, block, axis)
                 data = read!(f, block)[axis]
-                is_plain_mesh = block isa PlainMeshBlockHeader
 
                 @test sda[1] == data[1]
                 @test sda[2:3] == data[2:3]
