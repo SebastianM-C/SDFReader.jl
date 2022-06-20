@@ -4,6 +4,7 @@ authors = ["Sebastian Micluța-Câmpeanu <m.c.sebastian95@gmail.com>"]
 version = "0.3.4"
 
 [deps]
+DiskArrays = "3c3547ce-8d99-4f5e-a174-61eb10b00ae3"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 
 [compat]
@@ -11,9 +12,10 @@ Unitful = "1.0"
 julia = "1.5, 1.6"
 
 [extras]
-Serialization = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 LRUCache = "8ac3fa9e-de4c-5943-b1dc-09c6b5f20637"
+Serialization = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
+SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "Serialization", "LRUCache"]
+test = ["Test", "Serialization", "LRUCache", "SafeTestsets"]

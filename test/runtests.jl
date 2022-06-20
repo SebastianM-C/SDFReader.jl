@@ -1,7 +1,8 @@
-using SDFReader
 using Test
-using Serialization
+using SafeTestsets
 
 @testset "SDFReader.jl" begin
-    include("sdf.jl")
+    @safetestset "SDF header" begin include("sdf_header.jl") end
+    @safetestset "SDF data" begin include("sdf.jl") end
+    @safetestset "DiskArrays integration" begin include("chunks.jl") end
 end

@@ -1,4 +1,4 @@
-function get_normalization(block::T) where T
+function get_normalization(block::T) where {T}
     hasproperty(block, :mult) ? block.mult : block.mults
 end
 
@@ -7,15 +7,17 @@ Base.nameof(block::AbstractBlockHeader) = nameof(block.base_header)
 labels(block::PointMeshBlockHeader) = block.labels
 labels(block::PlainMeshBlockHeader) = block.labels
 
+get_offset(block::AbstractBlockHeader) = block.base_header.data_location
+
 function add_units(raw_data::NTuple, block)
     𝟙 = one(eltype(block))
-    T = typeof(𝟙*get_units(block.units)[1])
-    map(data->reinterpret(T, data), raw_data)
+    T = typeof(𝟙 * get_units(block.units)[1])
+    map(data -> reinterpret(T, data), raw_data)
 end
 
 function add_units(raw_data, block)
     𝟙 = one(eltype(block))
-    reinterpret(typeof(𝟙*get_units(block.units)), raw_data)
+    reinterpret(typeof(𝟙 * get_units(block.units)), raw_data)
 end
 
 function apply_normalization!(raw_data, block)
