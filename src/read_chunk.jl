@@ -76,3 +76,11 @@ function DiskArrays.readblock!(a::SDFMesh{T,N,B}, aout, idxs::AbstractUnitRange)
     offset += sizeof(T) * block.np * (axis - 1)
     readchunk!(stream, aout, idxs, T, offset)
 end
+
+function DiskArrays.readblock!(a::SDFMesh{T,N,B}, aout, idxs::AbstractUnitRange) where {T,N,B<:PlainMeshBlockHeader}
+    stream, block = a.stream, a.block
+    offset = get_offset(block)
+    axis = a.axis
+    offset += sizeof(T) * block.dims[axis] * (axis - 1)
+    readchunk!(stream, aout, idxs, T, offset)
+end
