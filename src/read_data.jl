@@ -3,7 +3,7 @@ function Base.read!(f::IO, block::ConstantBlockHeader{T}) where T
 end
 
 function Base.read!(f::IO, block::PlainMeshBlockHeader{T,D}) where {T,D}
-    offset = block.base_header.data_location
+    offset = get_offset(block)
 
     raw_data = ntuple(Val(D)) do i
         Array{T, 1}(undef, block.dims[i])
