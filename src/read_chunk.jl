@@ -27,8 +27,8 @@ function SDFMesh(file::IOStream, block::AbstractBlockHeader, axis; chunksize=(In
     SDFMesh{eltype(block)}(file, block, axis, chunksize)
 end
 
-haschunks(::SDFVariable) = Chunked()
-haschunks(::SDFMesh) = Chunked()
+DiskArrays.haschunks(::SDFVariable) = Chunked()
+DiskArrays.haschunks(::SDFMesh) = Chunked()
 
 Base.size(a::SDFVariable) = size(a.block)
 Base.size(a::SDFMesh) = (size(a.block)[a.axis],)
