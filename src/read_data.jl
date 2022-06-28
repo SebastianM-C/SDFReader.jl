@@ -33,7 +33,7 @@ function Base.read!(f::IO, block::PointMeshBlockHeader{T,D}) where {T,D}
 end
 
 function Base.read!(f::IO, block::PlainVariableBlockHeader{T}) where T
-    dim = prod(block.dims)
+    dim = prod(Int64.(block.dims))
     raw_data = Array{T, 1}(undef, dim)
 
     seek(f, get_offset(block))
