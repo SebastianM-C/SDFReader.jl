@@ -10,7 +10,7 @@ export header, Header,
     PointVariableBlockHeader,
     PlainMeshBlockHeader,
     PointMeshBlockHeader,
-    SDFVariable, SDFMesh
+    DiskArrayVariable, DiskArrayMesh,
 
 using Unitful: uparse
 using DiskArrays: DiskArrays, AbstractDiskArray, Chunked

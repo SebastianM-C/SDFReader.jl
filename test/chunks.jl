@@ -13,11 +13,11 @@ unsupported = Symbol.(["cpu/proton", "cpu/electron", "run_info", "cpu_rank", "el
 meshes = Symbol.(["grid", "grid/electron", "grid/proton"])
 variables = setdiff(keys(blocks), unsupported, meshes)
 
-@testset "SDFVariable" begin
+@testset "DiskArrayVariable" begin
     open(fn, "r") do f
         @testset "$key" for key in variables
             block = blocks[key]
-            sda = SDFVariable(f, block)
+            sda = DiskArrayVariable(f, block)
             data = read!(f, block)
 
             @test haschunks(sda) isa Chunked
@@ -32,12 +32,12 @@ variables = setdiff(keys(blocks), unsupported, meshes)
     end
 end
 
-@testset "SDFMesh" begin
+@testset "DiskArrayMesh" begin
     open(fn, "r") do f
         @testset "$key" for key in meshes
             block = blocks[key]
             @testset "$key with axis $axis" for axis in 1:3
-                sda = SDFMesh(f, block, axis)
+                sda = DiskArrayMesh(f, block, axis)
                 data = read!(f, block)[axis]
 
                 @test haschunks(sda) isa Chunked

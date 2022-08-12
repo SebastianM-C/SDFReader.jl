@@ -1,37 +1,37 @@
-struct SDFVariable{T,N,B,S} <: AbstractDiskArray{T,N}
+struct DiskArrayVariable{T,N,B,S} <: AbstractDiskArray{T,N}
     stream::S
     block::B
     chunksize::NTuple{N,Int}
 end
 
-function SDFVariable{T}(file::S, block::B, chunksize::NTuple{N,Int}) where {T,N,B,S}
-    SDFVariable{T,N,B,S}(file, block, chunksize)
+function DiskArrayVariable{T}(file::S, block::B, chunksize::NTuple{N,Int}) where {T,N,B,S}
+    DiskArrayVariable{T,N,B,S}(file, block, chunksize)
 end
 
-function SDFVariable(file::IOStream, block::AbstractBlockHeader; chunksize=Int.(size(block)))
-    SDFVariable{eltype(block)}(file, block, chunksize)
+function DiskArrayVariable(file::IO, block::AbstractBlockHeader; chunksize=Int.(size(block)))
+    DiskArrayVariable{eltype(block)}(file, block, chunksize)
 end
 
-struct SDFMesh{T,N,B,S} <: AbstractDiskArray{T,N}
+struct DiskArrayMesh{T,N,B,S} <: AbstractDiskArray{T,N}
     stream::S
     block::B
     axis::Int
     chunksize::NTuple{N,Int}
 end
 
-function SDFMesh{T}(file::S, block::B, axis, chunksize::NTuple{N,Int}) where {T,N,B,S}
-    SDFMesh{T,N,B,S}(file, block, axis, chunksize)
+function DiskArrayMesh{T}(file::S, block::B, axis, chunksize::NTuple{N,Int}) where {T,N,B,S}
+    DiskArrayMesh{T,N,B,S}(file, block, axis, chunksize)
 end
 
-function SDFMesh(file::IOStream, block::AbstractBlockHeader, axis; chunksize=(Int(size(block, axis)),))
-    SDFMesh{eltype(block)}(file, block, axis, chunksize)
+function DiskArrayMesh(file::IO, block::AbstractBlockHeader, axis; chunksize=(Int(size(block, axis)),))
+    DiskArrayMesh{eltype(block)}(file, block, axis, chunksize)
 end
 
-DiskArrays.haschunks(::SDFVariable) = Chunked()
-DiskArrays.haschunks(::SDFMesh) = Chunked()
+DiskArrays.haschunks(::DiskArrayVariable) = Chunked()
+DiskArrays.haschunks(::DiskArrayMesh) = Chunked()
 
-Base.size(a::SDFVariable) = size(a.block)
-Base.size(a::SDFMesh) = (size(a.block)[a.axis],)
+Base.size(a::DiskArrayVariable) = size(a.block)
+Base.size(a::DiskArrayMesh) = (size(a.block)[a.axis],)
 
 function check_continuous(linear_idxs)
     vec_idxs = vec(linear_idxs)
@@ -59,7 +59,7 @@ function readchunk!(stream, aout, linear_idxs, T, offset)
 end
 
 # This covers PointVariableBlockHeader and PlainVariableBlockHeader
-function DiskArrays.readblock!(a::SDFVariable, aout, idxs::AbstractUnitRange...)
+function DiskArrays.readblock!(a::DiskArrayVariable, aout, idxs::AbstractUnitRange...)
     ndims(a) == length(idxs) || error("Number of indices is not correct")
     all(r -> isa(r, AbstractUnitRange), idxs) || error("Not all indices are unit ranges")
 
@@ -69,7 +69,7 @@ function DiskArrays.readblock!(a::SDFVariable, aout, idxs::AbstractUnitRange...)
     readchunk!(stream, aout, linear_idxs, eltype(block), offset)
 end
 
-function DiskArrays.readblock!(a::SDFMesh{T,N,B}, aout, idxs::AbstractUnitRange) where {T,N,B<:PointMeshBlockHeader}
+function DiskArrays.readblock!(a::DiskArrayMesh{T,N,B}, aout, idxs::AbstractUnitRange) where {T,N,B<:PointMeshBlockHeader}
     stream, block = a.stream, a.block
     offset = get_offset(block)
     axis = a.axis
@@ -77,7 +77,7 @@ function DiskArrays.readblock!(a::SDFMesh{T,N,B}, aout, idxs::AbstractUnitRange)
     readchunk!(stream, aout, idxs, T, offset)
 end
 
-function DiskArrays.readblock!(a::SDFMesh{T,N,B}, aout, idxs::AbstractUnitRange) where {T,N,B<:PlainMeshBlockHeader}
+function DiskArrays.readblock!(a::DiskArrayMesh{T,N,B}, aout, idxs::AbstractUnitRange) where {T,N,B<:PlainMeshBlockHeader}
     stream, block = a.stream, a.block
     offset = get_offset(block)
     axis = a.axis
