@@ -69,7 +69,7 @@ function DiskArrays.readblock!(a::DiskArrayVariable, aout, idxs::AbstractUnitRan
     readchunk!(stream, aout, linear_idxs, eltype(block), offset)
 end
 
-function DiskArrays.readblock!(a::DiskArrayMesh, aout, idxs::AbstractUnitRange)
+function DiskArrays.readblock!(a::DiskArrayMesh{T}, aout, idxs::AbstractUnitRange) where T
     stream, block = a.stream, a.block
     axis = a.axis
     offset = get_offset(block, axis)
