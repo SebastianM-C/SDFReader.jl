@@ -11,9 +11,13 @@ export header, Header,
     PlainMeshBlockHeader,
     PointMeshBlockHeader,
     DiskArrayVariable, DiskArrayMesh,
+    MmapedVariable, MmapedParticleMesh,
+    mmap_block
 
 using Unitful: uparse
 using DiskArrays: DiskArrays, AbstractDiskArray, Chunked
+using Mmap: mmap
+using TiledIteration: TiledIteration, padded_tilesize, TileIterator, SplitAxis
 
 include("constants.jl")
 include("sdf_header.jl")
@@ -23,6 +27,7 @@ include("cache.jl")
 include("units.jl")
 include("utils.jl")
 include("read_chunk.jl")
+include("mmap.jl")
 
 @generated function typemap(data_type::Val{N})::DataType where {N}
     if N == DATATYPE_NULL
@@ -50,12 +55,12 @@ file_summary(filename) = open(file_summary, filename)[2]
 
 function file_summary(f::IOStream)
     h = header(f)
-    blocks = Dict{Symbol,AbstractBlockHeader}()
+    blocks = Dict{String,AbstractBlockHeader}()
 
     block_start = h.summary_location
     for i in Base.OneTo(h.nblocks)
         block = BlockHeader(f, block_start, h.string_length, h.block_header_length)
-        blocks = push!(blocks, Symbol(block.id) => read(f, block))
+        blocks = push!(blocks, block.id => read(f, block))
         block_start = block.next_block_location
     end
 
