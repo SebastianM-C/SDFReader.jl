@@ -8,7 +8,7 @@ function DiskArrayVariable{T}(file::S, block::B, chunksize::NTuple{N,Int}) where
     DiskArrayVariable{T,N,B,S}(file, block, chunksize)
 end
 
-function DiskArrayVariable(file::IO, block::AbstractBlockHeader; chunksize=Int.(size(block)))
+function DiskArrayVariable(file::IO, block::Union{PointVariableBlockHeader,PlainVariableBlockHeader}; chunksize=Int.(size(block)))
     DiskArrayVariable{eltype(block)}(file, block, chunksize)
 end
 
@@ -23,7 +23,7 @@ function DiskArrayMesh{T}(file::S, block::B, axis, chunksize::NTuple{N,Int}) whe
     DiskArrayMesh{T,N,B,S}(file, block, axis, chunksize)
 end
 
-function DiskArrayMesh(file::IO, block::AbstractBlockHeader, axis; chunksize=(Int(size(block, axis)),))
+function DiskArrayMesh(file::IO, block::Union{PointMeshBlockHeader,PlainMeshBlockHeader}, axis; chunksize=(Int(size(block, axis)),))
     DiskArrayMesh{eltype(block)}(file, block, axis, chunksize)
 end
 
@@ -69,18 +69,9 @@ function DiskArrays.readblock!(a::DiskArrayVariable, aout, idxs::AbstractUnitRan
     readchunk!(stream, aout, linear_idxs, eltype(block), offset)
 end
 
-function DiskArrays.readblock!(a::DiskArrayMesh{T,N,B}, aout, idxs::AbstractUnitRange) where {T,N,B<:PointMeshBlockHeader}
+function DiskArrays.readblock!(a::DiskArrayMesh, aout, idxs::AbstractUnitRange)
     stream, block = a.stream, a.block
-    offset = get_offset(block)
     axis = a.axis
-    offset += sizeof(T) * block.np * (axis - 1)
-    readchunk!(stream, aout, idxs, T, offset)
-end
-
-function DiskArrays.readblock!(a::DiskArrayMesh{T,N,B}, aout, idxs::AbstractUnitRange) where {T,N,B<:PlainMeshBlockHeader}
-    stream, block = a.stream, a.block
-    offset = get_offset(block)
-    axis = a.axis
-    offset += sizeof(T) * block.dims[axis] * (axis - 1)
+    offset = get_offset(block, axis)
     readchunk!(stream, aout, idxs, T, offset)
 end
