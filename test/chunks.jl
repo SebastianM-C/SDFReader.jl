@@ -8,9 +8,9 @@ ref_fn = joinpath(@__DIR__, "0002.jls")
 v_header, data, grids, units = open(deserialize, ref_fn)
 
 blocks = file_summary(fn)
-unsupported = Symbol.(["cpu/proton", "cpu/electron", "run_info", "cpu_rank", "elapsed_time"])
+unsupported = ["cpu/proton", "cpu/electron", "run_info", "cpu_rank", "elapsed_time"]
 
-meshes = Symbol.(["grid", "grid/electron", "grid/proton"])
+meshes = ["grid", "grid/electron", "grid/proton"]
 variables = setdiff(keys(blocks), unsupported, meshes)
 
 @testset "DiskArrayVariable" begin
