@@ -1,10 +1,12 @@
 name = "SDFReader"
 uuid = "bd0b56a1-724b-4db5-9cfb-6781c02e0e49"
 authors = ["Sebastian Micluța-Câmpeanu <m.c.sebastian95@gmail.com>"]
-version = "0.4.1"
+version = "0.5.0"
 
 [deps]
 DiskArrays = "3c3547ce-8d99-4f5e-a174-61eb10b00ae3"
+Mmap = "a63ad114-7e13-5084-954f-fe012c677804"
+TiledIteration = "06e1c1a7-607b-532d-9fad-de7d9aa2abac"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 
 [compat]
@@ -14,8 +16,8 @@ julia = "1.5, 1.6"
 
 [extras]
 LRUCache = "8ac3fa9e-de4c-5943-b1dc-09c6b5f20637"
-Serialization = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
+Serialization = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]

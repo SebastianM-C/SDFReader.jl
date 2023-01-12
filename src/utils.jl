@@ -8,6 +8,8 @@ labels(block::PointMeshBlockHeader) = block.labels
 labels(block::PlainMeshBlockHeader) = block.labels
 
 get_offset(block::AbstractBlockHeader) = block.base_header.data_location
+get_offset(block::PointMeshBlockHeader{T}, axis::Int) where {T} = get_offset(block) + sizeof(T) * block.np * (axis - 1)
+get_offset(block::PlainMeshBlockHeader{T}, axis::Int) where {T} = get_offset(block) + sizeof(T) * block.dims[axis] * (axis - 1)
 
 function add_units(raw_data::NTuple, block)
     𝟙 = one(eltype(block))

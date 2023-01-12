@@ -18,7 +18,7 @@ v_header, data, grids, units = open(deserialize, ref_fn)
         end
     end
 
-    unsupported = Symbol.(["cpu/proton", "cpu/electron", "run_info", "cpu_rank"])
+    unsupported = ["cpu/proton", "cpu/electron", "run_info", "cpu_rank"]
     @testset "Data" begin
         open(fn, "r") do f
             @testset "$key" for (key, block) in pairs(blocks)
@@ -30,9 +30,9 @@ v_header, data, grids, units = open(deserialize, ref_fn)
     end
 
     @testset "Utilities" begin
-        @test nameof(blocks[:ex]) == "Electric Field/Ex"
-        @test labels(blocks[:grid]) == ("X", "Y", "Z")
-        @test labels(blocks[Symbol("grid/electron")]) == ("X", "Y", "Z")
+        @test nameof(blocks["ex"]) == "Electric Field/Ex"
+        @test labels(blocks["grid"]) == ("X", "Y", "Z")
+        @test labels(blocks["grid/electron"]) == ("X", "Y", "Z")
     end
 
     @testset "Cache" begin
@@ -41,15 +41,15 @@ v_header, data, grids, units = open(deserialize, ref_fn)
             t1 = 0.
             t2 = 0.
             @testset "store" begin
-                ex = @timed cached_read(f, blocks[:ex], cache)
-                @test read(f, blocks[:ex]) == ex.value
+                ex = @timed cached_read(f, blocks["ex"], cache)
+                @test read(f, blocks["ex"]) == ex.value
                 t1 = ex.time
-                @test read(f, blocks[:ey]) == cached_read(f, blocks[:ey], cache)
+                @test read(f, blocks["ey"]) == cached_read(f, blocks["ey"], cache)
             end
             @testset "load" begin
-                ex = @timed cached_read(f, blocks[:ex], cache)
-                @test read(f, blocks[:ex]) == ex.value
-                @test read(f, blocks[:ey]) == cached_read(f, blocks[:ey], cache)
+                ex = @timed cached_read(f, blocks["ex"], cache)
+                @test read(f, blocks["ex"]) == ex.value
+                @test read(f, blocks["ey"]) == cached_read(f, blocks["ey"], cache)
                 t2 = ex.time
                 # test that the cache was used
                 @test t2 < 100t1
